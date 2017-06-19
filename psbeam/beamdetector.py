@@ -1,20 +1,28 @@
-# Needs some last minute bug testing to make sure everything was ported 
-# into the class correctly.
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+############
+# Standard #
+############
+import logging
 
+###############
+# Third Party #
+###############
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-# from joblib import Memory
 from matplotlib.patches import Rectangle
 from multiprocessing import Process
-from utils.cvUtils import to_uint8
 
-# cachedir = "cache"
-# mem = Memory(cachedir=cachedir, verbose=0)
+##########
+# Module #
+##########
+from .utils.cvUtils import to_uint8
+import .preprocessing as prep
 
 ################################################################################
 #                                Detector Class                                #
-################################################################################
+################################################################################1
 
 class Detector(object):
     """
@@ -268,7 +276,28 @@ class Detector(object):
                                                     bounding_box, msg))
             plot.start()
 
+def get_contour(image, factor=3):
+    """Returns largest contour of the contour list.
+
+    Args:
+        image (np.ndarray): Image to extract the contours from.
+    Returns:
+        np.ndarray. First element of contours list which lists the boundaries 
+            of the contour.
+
+    Method is making an implicit assumption that there will only be one
+    contour (beam) in the image. 
+    """
+    _, image_thresh = cv2.threshold(
+        image, image.mean() + image.std()*factor, 255, cv2.THRESH_TOZERO)
+    _, contours, _ = cv2.findContours(image_thresh, 1, 2)
+
+    area = [cv2.contourArea(cnt) for cnt in contours]
+    return contours[np.argmax(np.array(area))]
+
 if __name__ == "__main__":
     pass
+
+
 
 
