@@ -1,7 +1,16 @@
 # Preprocessing functions used in psbeam
+############
+# Standard #
+############
+import logging
 
+###############
+# Third Party #
+###############
 import cv2
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 def to_uint8(image, mode="clip"):
     """
@@ -48,3 +57,56 @@ def uint_resize_gauss(image, mode='clip', fx=1.0, fy=1.0, kernel=(11,11),
     image_resized = cv2.resize(image_uint, (0,0), fx=fx, fy=fy)
     image_gblur = cv2.GaussianBlur(image_resized, kernel, sigma)
     return image_gblur
+
+def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
+    """
+    Thresholds the image according to one of the modes described below.
+
+    mean:
+    	Set the threshold line to be image.mean + image.std*factor.
+    top:
+    	Sets the threshold line to be image.max - image.std*factor, leaving just
+    	the highest intensity pixels.
+    bottom:
+    	Sets the threshold line to be image.min + image.std*factor, removing
+    	just the lowest intensity pixels
+    adaptive:
+    	Sets threshold line according to a weighed sum of neughborhood values
+    	using a gaussian window. See 'Adaptive Thresholding' in the following
+    	link for more details.
+		http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
+    otsu:
+		Sets the threshold to be between the histogram peaks of a bimodal image.
+    	See "Otsu's Binarization" in the following for more details.
+		http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html    	
+    """
+    valid_modes = set('mean', 'top', 'bottom', 'adaptive', 'otsu')
+    if binary:
+        th_type = cv2.THRESH_BINARY
+    else:
+        th_type = cv2.cv2.THRESH_TOZERO
+
+    if mode.lower() not in valid_modes:
+        error_str = "Invalid mode passed for thresholding."
+        logger.error(error_str, stack_info=True)
+        raise ValueError(error_str)
+    elif mode.lower() == 'mean':
+        _, th = cv2.threshold(image, image.mean() - image.std()*factor, 255,
+                              th_type)        
+    elif mode.lower() == 'top':
+        _, th = cv2.threshold(image, image.max() - image.std()*factor, 255,
+                              th_type)
+    elif mode.lower() == 'bottom':
+        _, th = cv2.threshold(image, image.min() - image.std()*factor, 255,
+                              th_type)
+    elif mode.lower() == "adaptive":
+        blockSize = kwargs.pop("BlockSize", 11)
+        C = kwargs.pop("C", 2)        
+        th = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                   th_type, blockSize, C)
+    elif mode.lower() == "otsu":
+        _, th = cv2.threshold(image, 0, 255, th_type+cv2.THRESH_OTSU)
+
+    return th
+        
+                    
