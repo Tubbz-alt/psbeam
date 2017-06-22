@@ -12,12 +12,14 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-def to_uint8(image, mode="clip"):
+def to_uint8(image, mode="norm"):
     """
     *Correctly* converts an image to uint8 type.
     
     Args:
         image (np.ndarray): Image to be converted to uint8.
+        mode (str): Conversion mode that either clips the image or normalizes
+            to make it uint8 compliant.
     Returns:
         np.ndarray. Converted Image.
         
@@ -29,17 +31,17 @@ def to_uint8(image, mode="clip"):
     if not isinstance(image, np.ndarray):
         image_array = np.array(image)
     else:
-        image_array = image
+        image_array = np.copy(image)
     # Clip or normalize the image
     if mode.lower() == "clip":
-        np.clip(image_array, 0, 255, out=image_array)
+        return cv2.convertScaleAbs(image_array)
     elif mode.lower() == "norm":
-        image_array *= 255/image_array.max()
-    else:
-        raise ValueError("Valid modes are 'clip' and 'norm'")
-    return image_array.astype(np.uint8)
+        type_min = np.iinfo(image_array.dtype).min
+        type_max = np.iinfo(image_array.dtype).max
+        return cv2.convertScaleAbs(image_array, alpha=255/(type_max-type_min))
+    raise ValueError("Valid modes are 'clip' and 'norm'")
 
-def uint_resize_gauss(image, mode='clip', fx=1.0, fy=1.0, kernel=(11,11), 
+def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11), 
                       sigma=0):
     """
     Preprocess the image by converting to uint8, resizing and running a 
@@ -63,22 +65,22 @@ def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
     Thresholds the image according to one of the modes described below.
 
     mean:
-    	Set the threshold line to be image.mean + image.std*factor.
+        Set the threshold line to be image.mean + image.std*factor.
     top:
-    	Sets the threshold line to be image.max - image.std*factor, leaving just
-    	the highest intensity pixels.
+        Sets the threshold line to be image.max - image.std*factor, leaving just
+        the highest intensity pixels.
     bottom:
-    	Sets the threshold line to be image.min + image.std*factor, removing
-    	just the lowest intensity pixels
+        Sets the threshold line to be image.min + image.std*factor, removing
+        just the lowest intensity pixels
     adaptive:
-    	Sets threshold line according to a weighed sum of neughborhood values
-    	using a gaussian window. See 'Adaptive Thresholding' in the following
-    	link for more details.
-		http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
+        Sets threshold line according to a weighed sum of neughborhood values
+        using a gaussian window. See 'Adaptive Thresholding' in the following
+        link for more details.
+        http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
     otsu:
-		Sets the threshold to be between the histogram peaks of a bimodal image.
-    	See "Otsu's Binarization" in the following for more details.
-		http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html    	
+        Sets the threshold to be between the histogram peaks of a bimodal image.
+        See "Otsu's Binarization" in the following for more details.
+        http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html       
     """
     valid_modes = set('mean', 'top', 'bottom', 'adaptive', 'otsu')
     if binary:
