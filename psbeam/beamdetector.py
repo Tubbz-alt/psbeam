@@ -17,11 +17,22 @@ from multiprocessing import Process
 ##########
 # Module #
 ##########
-from .utils.cvUtils import to_uint8
-import .preprocessing as prep
+from .beamexceptions import NoBeamPresent
+from .utils.cvutils import to_uint8
+from .preprocessing import uint_resize_gauss
 
-def get_contour(image, factor=3):
-    """Returns largest contour of the contour list.
+def get_contours(image, factor=3):
+    """
+    Returns the contours of an image according to a mean-threshold.
+    """
+    _, image_thresh = cv2.threshold(
+        image, image.mean() + image.std()*factor, 255, cv2.THRESH_TOZERO)
+    _, contours, _ = cv2.findContours(image_thresh, 1, 2)
+    return contours
+
+def get_largest_contour(image, contours=None, factor=3, get_area=False):
+    """
+    Returns largest contour of the contour list.
 
     Args:
         image (np.ndarray): Image to extract the contours from.
@@ -32,12 +43,13 @@ def get_contour(image, factor=3):
     Method is making an implicit assumption that there will only be one
     contour (beam) in the image. 
     """
-    _, image_thresh = cv2.threshold(
-        image, image.mean() + image.std()*factor, 255, cv2.THRESH_TOZERO)
-    _, contours, _ = cv2.findContours(image_thresh, 1, 2)
-
+    if not contours:
+        contours = get_contours(image, factor=factor)
+    if not contours:
+        raise NoBeamPresent
     area = [cv2.contourArea(cnt) for cnt in contours]
-    return contours[np.argmax(np.array(area))]
+    if get_area:
+        return contours[np.argmax(np.array(area))], np.array(area).max()
 
 def get_moments(image=None, contour=None):
     """
@@ -56,7 +68,7 @@ def get_moments(image=None, contour=None):
     try:
         return cv2.moments(contour)
     except TypeError:
-        contour = get_contour(image)
+        contour = get_largest_contour(image)
         return cv2.moments(contour)
 
 def get_centroid(M):
@@ -72,8 +84,6 @@ def get_centroid(M):
         tuple. Centroid of the image.
     """    
     return int(M['m10']/M['m00']), int(M['m01']/M['m00'])
-
-
 
 def get_bounding_box(image=None, contour=None):
     """
@@ -91,7 +101,7 @@ def get_bounding_box(image=None, contour=None):
     try:
         return cv2.boundingRect(contour)
     except TypeError:
-        contour = get_contour(image)
+        contour = get_largest_contour(image)
         return cv2.boundingRect(contour)
 
 
@@ -107,22 +117,18 @@ def beam_is_present(M=None, image=None, contour=None, max_m0=10e5, min_m0=10):
 
     Returns:
         bool. True if beam is present, False if not.
-
-    TODO:
-        While a lower bound makes sense, an upper bound was found to be 
-        necessary as well. This should be investigated.
     """    
     try:
-        return M['m00'] < max_m0 and M['m00'] > min_m0
+        if not (M['m00'] < max_m0 and M['m00'] > min_m0):
+            raise BeamNotPresent
     except (TypeError, IndexError):
         if contour:
             M = get_moments(contour=contour)
         else:
-            contour = get_contour(image)
+            contour = get_largest_contour(image)
             M = get_moments(contour=contour)
-        return M['m00'] < max_m0 and M['m00'] > min_m0
-
-
+        if not (M['m00'] < max_m0 and M['m00'] > min_m0):
+            raise BeamNotPresent
 
 def detect(image, resize=1.0, kernel=(11,11)):
     """
@@ -138,17 +144,15 @@ def detect(image, resize=1.0, kernel=(11,11)):
         tuple. Tuple of centroid and bounding box. None, None if no beam is
             present.
     """
-    image_prep = prep.uint_resize_gauss(image, resize, kernel)
-    contour = get_contour(image_prep)
+    image_prep = uint_resize_gauss(image, fx=resize, fy=resize, kernel=kernel)
+    contour = get_largest_contour(image_prep)
     M = get_moments(contour=contour)
     centroid, bounding_box = None, None
-    if self.beam_is_present(M):
+    if beam_is_present(M):
         centroid     = [pos//resize for pos in get_centroid(M)]
         bounding_box = [val//resize for val in get_bounding_box(image_prep, 
                                                                 contour)]
     return centroid, bounding_box
-
-
 
 def find(image):
     """
@@ -165,8 +169,8 @@ def find(image):
 
     This method assumes that beam is known to be present.
     """
-    image_prep = prep.uint_resize_gauss(image, resize, kernel)
-    contour = get_contour(image_prep)
+    image_prep = uint_resize_gauss(image, fx=resize, fy=resize, kernel=kernel)
+    contour = get_largest_contour(image_prep)
     M = get_moments(contour=contour)
     centroid     = [pos//resize for pos in get_centroid(M)]
     bounding_box = [val//resize for val in get_bounding_box(image_prep, 
@@ -230,7 +234,7 @@ def plot(image, centroid=[], bounding_box=[], msg="", wait=False):
     if isinstance(bounding_box, tuple):
         bounding_box = [bounding_box]
     if wait:
-        self._plot(
+        _plot(
             image, centroids=centroid, bounding_boxes=bounding_box, msg=msg)
     else:
         plot = Process(target=_plot, args=(image, centroid, bounding_box, msg))
