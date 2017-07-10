@@ -19,11 +19,6 @@ import logging
 from .beamexceptions import NoBeamPresent
 from .preprocessing import uint_resize_gauss
 
-def get_opening(image, erode=1, dilate=1, kernel=np.ones((5,5),np.uint8)):
-    img_erode = cv2.erode(image, kernel, iterations=erode)
-    img_dilate = cv2.erode(img_erode, kernel, iterations=dilate)
-    return img_dilate
-
 def beam_is_present(M=None, image=None, contour=None, max_m0=10e5, min_m0=10):
     """
     Checks if there is a beam in the image by checking the value of the 
