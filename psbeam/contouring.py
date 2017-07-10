@@ -16,17 +16,11 @@ import logging
 ###############
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
-from multiprocessing import Process
 
 ##########
 # Module #
 ##########
 from .beamexceptions import NoBeamPresent
-from .utils.cvutils import to_uint8
-from .preprocessing import uint_resize_gauss
-
 
 def get_contours(image, factor=3):
     """
