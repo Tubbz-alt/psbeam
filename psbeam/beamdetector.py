@@ -21,6 +21,12 @@ from .beamexceptions import NoBeamPresent
 from .utils.cvutils import to_uint8
 from .preprocessing import uint_resize_gauss
 
+def get_opening(image, erode=1, dilate=1, kernel=np.ones((5,5),np.uint8)):
+    img_erode = cv2.erode(image, kernel, iterations=erode)
+    img_dilate = cv2.erode(img_erode, kernel, iterations=dilate)
+    return img_dilate
+
+
 def get_contours(image, factor=3):
     """
     Returns the contours of an image according to a mean-threshold.
@@ -239,3 +245,22 @@ def plot(image, centroid=[], bounding_box=[], msg="", wait=False):
     else:
         plot = Process(target=_plot, args=(image, centroid, bounding_box, msg))
         plot.start()
+
+
+# class BeamException(Exception):
+#     """
+#     Base exception class for psbeam.
+#     """
+#     pass
+
+
+# class NoBeamPresent(BeamException):
+#     """
+#     Exception raised if an operation requiring the beam is requested but no beam
+#     is actually present.
+#     """
+#     def __init__(self, *args, **kwargs):
+#         self.msg = kwargs.pop("msg", "Cannot perform operation; No beam found.")
+#         super().__init__(*args, **kwargs)
+#     def __str__(self):
+#         return repr(self.msg)
