@@ -16,8 +16,10 @@ import logging
 ##########
 # Module #
 ##########
-from .beamexceptions import NoBeamPresent
 from .preprocessing import uint_resize_gauss
+from .beamexceptions import (NoContoursPresent, NoBeamPresent)
+from .contouring import (get_largest_contour, get_moments, get_bounding_box, 
+                         get_centroid)
 
 def beam_is_present(M=None, image=None, contour=None, max_m0=10e5, min_m0=10):
     """
@@ -39,8 +41,11 @@ def beam_is_present(M=None, image=None, contour=None, max_m0=10e5, min_m0=10):
         if contour:
             M = get_moments(contour=contour)
         else:
-            contour = get_largest_contour(image)
-            M = get_moments(contour=contour)
+            try:
+                contour = get_largest_contour(image)
+                M = get_moments(contour=contour)
+            except NoContoursPresent:
+                raise NoBeamPresent
         if not (M['m00'] < max_m0 and M['m00'] > min_m0):
             raise BeamNotPresent
 
@@ -59,8 +64,11 @@ def detect(image, resize=1.0, kernel=(11,11)):
             present.
     """
     image_prep = uint_resize_gauss(image, fx=resize, fy=resize, kernel=kernel)
-    contour = get_largest_contour(image_prep)
-    M = get_moments(contour=contour)
+    try:
+        contour = get_largest_contour(image_prep)
+        M = get_moments(contour=contour)
+    except NoContoursPresent:
+        raise NoBeamPresent
     centroid, bounding_box = None, None
     if beam_is_present(M):
         centroid     = [pos//resize for pos in get_centroid(M)]
@@ -84,9 +92,13 @@ def find(image):
     This method assumes that beam is known to be present.
     """
     image_prep = uint_resize_gauss(image, fx=resize, fy=resize, kernel=kernel)
-    contour = get_largest_contour(image_prep)
-    M = get_moments(contour=contour)
-    centroid     = [pos//resize for pos in get_centroid(M)]
-    bounding_box = [val//resize for val in get_bounding_box(image_prep, 
-                                                            contour)]
-    return centroid, bounding_box
+    try:
+        contour = get_largest_contour(image_prep)
+        M = get_moments(contour=contour)
+        centroid     = [pos//resize for pos in get_centroid(M)]
+        bounding_box = [val//resize for val in get_bounding_box(image_prep, 
+                                                                contour)]
+        return centroid, bounding_box
+    except NoContoursPresent:
+        raise NoBeamPresent
+

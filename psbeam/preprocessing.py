@@ -1,4 +1,8 @@
-# Preprocessing functions used in psbeam
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Preprocessing functions used in psbeam.
+"""
 ############
 # Standard #
 ############
@@ -9,6 +13,11 @@ import logging
 ###############
 import cv2
 import numpy as np
+
+##########
+# Module #
+##########
+from .beamexceptions import InputError
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +45,13 @@ def to_uint8(image, mode="norm"):
     if mode.lower() == "clip":
         return cv2.convertScaleAbs(image_array)
     elif mode.lower() == "norm":
+        # Normalize according to the array max and min values
         type_min = np.iinfo(image_array.dtype).min
         type_max = np.iinfo(image_array.dtype).max
         return cv2.convertScaleAbs(image_array, alpha=255/(type_max-type_min))
-    raise ValueError("Valid modes are 'clip' and 'norm'")
+    # Handle invalid inputs
+    raise InputError("Invalid conversion mode inputted. Valid modes are " \
+                     "'clip' and 'norm.'")
 
 def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11), 
                       sigma=0):
@@ -89,9 +101,7 @@ def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
         th_type = cv2.cv2.THRESH_TOZERO
 
     if mode.lower() not in valid_modes:
-        error_str = "Invalid mode passed for thresholding."
-        logger.error(error_str, stack_info=True)
-        raise ValueError(error_str)
+        raise InputError("Invalid mode passed for thresholding.")
     elif mode.lower() == 'mean':
         _, th = cv2.threshold(image, image.mean() - image.std()*factor, 255,
                               th_type)        

@@ -20,7 +20,7 @@ import numpy as np
 ##########
 # Module #
 ##########
-from .beamexceptions import NoBeamPresent
+from .beamexceptions import NoContoursPresent 
 
 def get_contours(image, factor=3):
     """
@@ -44,13 +44,16 @@ def get_largest_contour(image, contours=None, factor=3, get_area=False):
     Method is making an implicit assumption that there will only be one
     contour (beam) in the image. 
     """
-    if not contours:
+    # Check if contours were inputted
+    if contours is None:
         contours = get_contours(image, factor=factor)
+    # Check if contours is empty
     if not contours:
-        raise NoBeamPresent
+        raise NoContoursPresent
+    # Get area of all the contours found
     area = [cv2.contourArea(cnt) for cnt in contours]
-    if get_area:
-        return contours[np.argmax(np.array(area))], np.array(area).max()
+    # Return argmax and max
+    return contours[np.argmax(np.array(area))], np.array(area).max()
 
 def get_moments(image=None, contour=None):
     """
@@ -69,7 +72,7 @@ def get_moments(image=None, contour=None):
     try:
         return cv2.moments(contour)
     except TypeError:
-        contour = get_largest_contour(image)
+        contour, _ = get_largest_contour(image)
         return cv2.moments(contour)
 
 def get_centroid(M):
@@ -102,31 +105,5 @@ def get_bounding_box(image=None, contour=None):
     try:
         return cv2.boundingRect(contour)
     except TypeError:
-        contour = get_largest_contour(image)
+        contour, _ = get_largest_contour(image)
         return cv2.boundingRect(contour)
-
-
-def beam_is_present(M=None, image=None, contour=None, max_m0=10e5, min_m0=10):
-    """
-    Checks if there is a beam in the image by checking the value of the 
-    zeroth moment.
-
-    Kwargs:
-        M (list): Moments of an image. 
-        image (np.ndarray): Image to check beam presence for.
-        contour (np.ndarray): Beam contour boundaries.
-
-    Returns:
-        bool. True if beam is present, False if not.
-    """    
-    try:
-        if not (M['m00'] < max_m0 and M['m00'] > min_m0):
-            raise BeamNotPresent
-    except (TypeError, IndexError):
-        if contour:
-            M = get_moments(contour=contour)
-        else:
-            contour = get_largest_contour(image)
-            M = get_moments(contour=contour)
-        if not (M['m00'] < max_m0 and M['m00'] > min_m0):
-            raise BeamNotPresent
