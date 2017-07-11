@@ -1,9 +1,22 @@
-# Image-Centric Helper Functions
-
-import cv2
+"""
+Image-Centric Helper Functions
+"""
+############
+# Standard #
+############
 import os
+import random
+import logging
+from pathlib import Path
+
+###############
+# Third Party #
+###############
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+
+logger = logging.getLogger(__name__)
 
 ################################################################################
 #                                Image Operations                              #
@@ -50,25 +63,41 @@ def plot_image(image,  msg = ""):
     plt.grid()
     plt.show()
 
-
-
 ################################################################################
 #                                   Image I/O                                  #
 ################################################################################
 
-def get_images_from_dir(target_dir, n_images=None, shuffle=False):
-    """Crawls through the contents of inputted directory and saves files with 
+def get_images_from_dir(target_dir, n_images=None, shuffle=False, out_type=list,
+                        recursive=False, read_mode=cv2.IMREAD_GRAYSCALE,
+                        glob="*"):
+    """
+    Crawls through the contents of inputted directoryb and saves files with 
     image extensions as images.
     """
     image_ext = set(["bmp", "jpeg", "jpg", "png", "tif", "tiff"])
-    dir_files = os.walk(target_dir)
-    dir_path, _, file_names = dir_files.next()
-    full_path_files = [os.path.join(dir_path, name) for name in file_names]
-    images = [cv2.imread(name, cv2.IMREAD_GRAYSCALE) for name in full_path_files
-             if os.path.splitext(name)[-1][1:].lower() in image_ext]
+    target_dir_path = Path(target_dir)
+    if recursive and glob == "*":
+        glob = "**"
+    # Grab path of all image files in dir
+    image_paths = [p for p in sorted(target_dir_path.glob(glob)) if
+                   p.is_file() and p.suffix[1:].lower() in image_ext]
+    
+    # Shuffle the list of paths
     if shuffle:
-        random.shuffle(images)
+        random.shuffle(image_paths)
+        if out_type is dict:
+            logger.warning("Shuffle set to True for requested output type dict")
+    # Only keep n_images of those files
     if n_images:
-        images = images[:n_images]
-    return images
+        image_paths = image_paths[:n_images]
+
+    # Return as the desired type
+    if out_type is dict:
+        return {p.stem : cv2.imread(str(p), read_mode) for p in image_paths}
+    else:
+        return out_type([cv2.imread(str(p), read_mode) for p in image_paths])
+
+    
+        
+    
 
