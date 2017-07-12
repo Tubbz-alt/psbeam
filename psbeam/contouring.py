@@ -20,7 +20,7 @@ import numpy as np
 ##########
 # Module #
 ##########
-from .template_images import circle_small
+from .images.templates import circle_small
 from .beamexceptions import NoContoursPresent
 
 logger = logging.getLogger(__name__)
@@ -32,11 +32,16 @@ def get_contours(image, factor=3):
     Parameters
     ----------
     image : np.ndarray
-    	Image to extract the contours from.
+        Image to extract the contours from.
 
     factor : int, optional
-    	Number of times to multiply the std by before adding to the mean for
-    	thresholding.
+        Number of times to multiply the std by before adding to the mean for
+        thresholding.
+
+    Returns
+    -------
+    contours : list
+        A list of the contours found in the image.
     """
     _, image_thresh = cv2.threshold(
         image, image.mean() + image.std()*factor, 255, cv2.THRESH_TOZERO)
@@ -54,19 +59,19 @@ def get_largest_contour(image=None, contours=None, factor=3):
     Parameters
     ----------
     image : np.ndarray, optional
-    	Image to extract the contours from.
+        Image to extract the contours from.
 
     contours : np.ndarray, optional
-    	Contours found on an image.
+        Contours found on an image.
 
     factor : int, optional
-    	Number of times to multiply the std by before adding to the mean for
-    	thresholding.    
+        Number of times to multiply the std by before adding to the mean for
+        thresholding.    
 
     Returns
     -------
     np.ndarray
-    	Contour that encloses the largest area.
+        Contour that encloses the largest area.
     """
     # Check if contours were inputted
     if contours is None:
@@ -90,15 +95,15 @@ def get_moments(image=None, contour=None):
     Parameters
     ----------
     image : np.ndarray
-    	Image to calculate moments from.
+        Image to calculate moments from.
 
     contour : np.ndarray
-    	Beam contour.
+        Beam contour.
 
     Returns
     -------
     list
-    	List of zero, first and second image moments for x and y.
+        List of zero, first and second image moments for x and y.
     """
     try:
         return cv2.moments(contour)
@@ -116,12 +121,12 @@ def get_centroid(M):
     Parameters
     ----------
     M : list
-    	Moments of an image
+        List of image moments.
     
     Returns
     -------
     tuple
-    	Centroid of the image
+        Centroid of the image moments.
     """    
     return int(M['m10']/M['m00']), int(M['m01']/M['m00'])
 
@@ -133,15 +138,15 @@ def get_bounding_box(image=None, contour=None):
     Parameters
     ----------
     image : np.ndarray, optional
-    	Image to get a bounding box for.
+        Image to get a bounding box for.
 
     contour : np.ndarray, optional
-    	Beam contour.
+        Beam contour.
 
     Returns
     -------
     tuple
-    	Contains x, y, width, height of bounding box.
+        Contains x, y, width, height of bounding box.
 
     It should be noted that the x and y coordinates are for the bottom left
     corner of the bounding box. Use matplotlib.patches.Rectangle to plot.
@@ -164,16 +169,17 @@ def get_circularity(contour, method=1):
     Parameters
     ----------
     contour : np.ndarray
-    	Contour to be compared with the circle contour
+        Contour to be compared with the circle contour
 
     method : int, optional
-    	Matches the contours according to an enumeration from 0 to 2. To see
-    	the methods in detail, go to:
-    	http://docs.opencv.org/3.1.0/df/d4e/group__imgproc__c.html#gacd971ae682604ff73cdb88645725968d
+        Matches the contours according to an enumeration from 0 to 2. To see
+        the methods in detail, go to:
+        http://docs.opencv.org/3.1.0/df/d4e/group__imgproc__c.html#gacd971ae682604ff73cdb88645725968d
 
     Returns
     -------
     float
-    	Value ranging from 0.0 to 1.0 where 0.0 is perfectly similar to a circle
+        Value ranging from 0.0 to 1.0 where 0.0 is perfectly similar to a 
+        circle.
     """
     return cv2.matchshapes(circle_small_contour, contour, method, 0)
