@@ -53,7 +53,7 @@ def to_uint8(image, mode="norm"):
     raise InputError("Invalid conversion mode inputted. Valid modes are " \
                      "'clip' and 'norm.'")
 
-def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11), 
+def uint_resize_gauss(image, mode='norm', resize=1.0, kernel=(11,11), 
                       sigma=0):
     """
     Preprocess the image by converting to uint8, resizing and running a 
@@ -68,7 +68,7 @@ def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11),
     use the desired preprocessing pipeline.
     """
     image_uint = to_uint8(image, mode=mode)
-    image_resized = cv2.resize(image_uint, (0,0), fx=fx, fy=fy)
+    image_resized = cv2.resize(image_uint, (0,0), fx=resize, fy=resize)
     image_gblur = cv2.GaussianBlur(image_resized, kernel, sigma)
     return image_gblur
 
