@@ -71,7 +71,7 @@ def get_images_from_dir(target_dir, n_images=None, shuffle=False, out_type=list,
                         recursive=False, read_mode=cv2.IMREAD_GRAYSCALE,
                         glob="*"):
     """
-    Crawls through the contents of inputted directoryb and saves files with 
+    Crawls through the contents of inputted directory and saves files with 
     image extensions as images.
     """
     image_ext = set(["bmp", "jpeg", "jpg", "png", "tif", "tiff"])
@@ -96,8 +96,6 @@ def get_images_from_dir(target_dir, n_images=None, shuffle=False, out_type=list,
         return {p.stem : cv2.imread(str(p), read_mode) for p in image_paths}
     else:
         return out_type([cv2.imread(str(p), read_mode) for p in image_paths])
-
-    
         
     
 
