@@ -20,7 +20,11 @@ import numpy as np
 ##########
 # Module #
 ##########
-from .beamexceptions import NoContoursPresent 
+from .template_images import circle_small
+from .beamexceptions import NoContoursPresent
+
+logger = logging.getLogger(__name__)
+circle_small_contour = get_largest_contour(circle_small, factor=0)
 
 def get_contours(image, factor=3):
     """
@@ -31,7 +35,7 @@ def get_contours(image, factor=3):
     _, contours, _ = cv2.findContours(image_thresh, 1, 2)
     return contours
 
-def get_largest_contour(image, contours=None, factor=3, get_area=False):
+def get_largest_contour(image, contours=None, factor=3):
     """
     Returns largest contour of the contour list.
 
@@ -107,3 +111,10 @@ def get_bounding_box(image=None, contour=None):
     except TypeError:
         contour, _ = get_largest_contour(image)
         return cv2.boundingRect(contour)
+
+def get_circularity(contour, method=1):
+    """
+    Returns a score of how circular a contour is by comparing it to the template
+    image, "circle_small.png." in the template_images directory.
+    """
+    return cv2.matchshapes(circle_small_contour, contour, method, 0)
