@@ -19,10 +19,10 @@ import simplejson as sjson
 ##########
 # Module #
 ##########
-from psbeam.morph import get_opening
-from psbeam.preprocessing import uint_resize_gauss
-from psbeam.beamexceptions import NoContoursPresent
-from psbeam.contouring import (get_largest_contour, get_moments, get_centroid,
+from ..morph import get_opening
+from ..preprocessing import uint_resize_gauss
+from ..beamexceptions import NoContoursPresent
+from ..contouring import (get_largest_contour, get_moments, get_centroid,
                                get_circularity)
 
 logger = logging.getLogger(__name__)
