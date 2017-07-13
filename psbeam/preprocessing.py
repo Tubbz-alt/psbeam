@@ -25,16 +25,23 @@ def to_uint8(image, mode="norm"):
     """
     *Correctly* converts an image to uint8 type.
     
-    Args:
-        image (np.ndarray): Image to be converted to uint8.
-        mode (str): Conversion mode that either clips the image or normalizes
-            to make it uint8 compliant.
-    Returns:
-        np.ndarray. Converted Image.
-        
     Running 'image.astype(np.uint8)' on its own applies a mod(256) to handle
     values over 256. The correct way is to either clip (implemented here) or
     normalize.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        Image to be converted to uint8.
+
+    mode : str, optional 
+        Conversion mode that either clips the image or normalizes to the range
+        of the original image type.
+
+    Returns
+    -------
+    np.ndarray
+        Image that is an np.ndarray of dtype uint8.
     """
     # Make sure the image is a numpy array
     if not isinstance(image, np.ndarray):
@@ -53,22 +60,37 @@ def to_uint8(image, mode="norm"):
     raise InputError("Invalid conversion mode inputted. Valid modes are " \
                      "'clip' and 'norm.'")
 
-def uint_resize_gauss(image, mode='norm', resize=1.0, kernel=(11,11), 
+def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11), 
                       sigma=0):
     """
     Preprocess the image by converting to uint8, resizing and running a 
-    gaussian blur. 
+    gaussian blur.
+    
+    Parameters
+    ----------
+    image : np.ndarray
+        The image to be preprocessed.
 
-    Args:
-        image (np.ndarray): The image to be preprocessed.
-    Returns:
-        np.ndarray. Preprocessed Image.
+    mode : str, optional 
+        Conversion mode that either clips the image or normalizes to the range
+        of the original image type.
 
-    Depending on the specific use case this method should be overwritten to
-    use the desired preprocessing pipeline.
+    fx : float, optional
+        Percent to resize the image by in x.
+
+    fy : float, optional
+        Percent to resize the image by in y.
+
+    kernel : tuple, optional
+        Kernel to use when running the gaussian filter.
+
+    Returns
+    -------
+    np.ndarray 
+        Image of type uint8 that has been resized and blurred.
     """
     image_uint = to_uint8(image, mode=mode)
-    image_resized = cv2.resize(image_uint, (0,0), fx=resize, fy=resize)
+    image_resized = cv2.resize(image_uint, (0,0), fx=fx, fy=fy)
     image_gblur = cv2.GaussianBlur(image_resized, kernel, sigma)
     return image_gblur
 
@@ -92,24 +114,45 @@ def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
     otsu:
         Sets the threshold to be between the histogram peaks of a bimodal image.
         See "Otsu's Binarization" in the following for more details.
-        http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html       
+        http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
+
+    Parameters
+    ----------
+    image : np.ndarray
+        The image to threshold.
+
+    binary : bool, optional
+        Use binary thresholding or to_zero thresholding.
+
+    mode : str, optional
+        Thresholding mode to use. See docstring for more information.
+
+    factor : int, optional
+        Number of times to multiply the std by before adding to the mean for
+        thresholding.    
+        
+    Returns
+    -------
+    th : np.ndarray
+        Image that has been thresholded.
     """
     valid_modes = set('mean', 'top', 'bottom', 'adaptive', 'otsu')
     if binary:
         th_type = cv2.THRESH_BINARY
     else:
-        th_type = cv2.cv2.THRESH_TOZERO
+        th_type = cv2.THRESH_TOZERO
 
+    # Find the right mode
     if mode.lower() not in valid_modes:
         raise InputError("Invalid mode passed for thresholding.")
     elif mode.lower() == 'mean':
-        _, th = cv2.threshold(image, image.mean() - image.std()*factor, 255,
+        _, th = cv2.threshold(image, image.mean() + image.std()*factor, 255,
                               th_type)        
     elif mode.lower() == 'top':
-        _, th = cv2.threshold(image, image.max() - image.std()*factor, 255,
+        _, th = cv2.threshold(image, image.max() + image.std()*factor, 255,
                               th_type)
     elif mode.lower() == 'bottom':
-        _, th = cv2.threshold(image, image.min() - image.std()*factor, 255,
+        _, th = cv2.threshold(image, image.min() + image.std()*factor, 255,
                               th_type)
     elif mode.lower() == "adaptive":
         blockSize = kwargs.pop("BlockSize", 11)
