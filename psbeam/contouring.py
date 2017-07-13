@@ -182,4 +182,4 @@ def get_circularity(contour, method=1):
         Value ranging from 0.0 to 1.0 where 0.0 is perfectly similar to a 
         circle.
     """
-    return cv2.matchshapes(circle_small_contour, contour, method, 0)
+    return cv2.matchShapes(circle_small_contour, contour, method, 0)
