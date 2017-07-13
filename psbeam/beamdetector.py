@@ -76,7 +76,7 @@ def detect(image, resize=1.0, kernel=(11,11)):
                                                                 contour)]
     return centroid, bounding_box
 
-def find(image):
+def find(image, resize=1.0, kernel=(11,11)):
     """
     Returns the centroid and bounding box of the beam.
 
@@ -93,7 +93,7 @@ def find(image):
     """
     image_prep = uint_resize_gauss(image, fx=resize, fy=resize, kernel=kernel)
     try:
-        contour = get_largest_contour(image_prep)
+        contour, _ = get_largest_contour(image_prep)
         M = get_moments(contour=contour)
         centroid     = [pos//resize for pos in get_centroid(M)]
         bounding_box = [val//resize for val in get_bounding_box(image_prep, 
