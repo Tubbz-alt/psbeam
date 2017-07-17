@@ -21,7 +21,7 @@ import numpy as np
 # Module #
 ##########
 from .images.templates import circle
-from .beamexceptions import NoContoursPresent
+from .beamexceptions import (NoContoursPresent, InputError)
 
 logger = logging.getLogger(__name__)
 
@@ -130,18 +130,18 @@ def get_centroid(M):
     """    
     return int(M['m10']/M['m00']), int(M['m01']/M['m00'])
 
-def get_bounding_box(image=None, contour=None):
+def get_bounding_box(inp_array, image=True, factor=1):
     """
     Finds the up-right bounding box that contains the inputted contour. Either
     an image or contours have to be passed.
 
     Parameters
     ----------
-    image : np.ndarray, optional
-        Image to get a bounding box for.
+    inp_array : np.ndarray
+        Array that can be the image contour or the image.
 
-    contour : np.ndarray, optional
-        Beam contour.
+    image : bool
+    	Argument specifying that the inputted array is actually an image.
 
     Returns
     -------
@@ -150,36 +150,32 @@ def get_bounding_box(image=None, contour=None):
 
     It should be noted that the x and y coordinates are for the bottom left
     corner of the bounding box. Use matplotlib.patches.Rectangle to plot.
-    """
-    try:
-        return cv2.boundingRect(contour)
-    except TypeError:
-        contour, _ = get_largest_contour(image)
+    """    
+    if not image:
+        return cv2.boundingRect(inp_array)
+    else:
+        contour, _ = get_largest_contour(image=inp_array, factor=factor)
         return cv2.boundingRect(contour)
 
-def get_contour_size(image=None, contour=None):
+def get_contour_size(inp_array, image=False, factor=1):
     """
     Returns the length and width of the contour, or the contour of the image
     inputted.
 
     Parameters
     ----------
-    image : np.ndarray, optional
-        Image to find the length and width of the contour on.
+    inp_array : np.ndarray
+        Array that can be the image contour or the image.
 
-    contour : np.ndarray, optional
-        Contour to find the length and width for.
+    image : bool
+    	Argument specifying that the inputted array is actually an image.
 
     Returns
     -------
     tuple
         Length and width of the inputted contour.
     """
-    try:
-        _, _, w, l = cv2.boundingRect(contour)
-    except TypeError:
-        contour, _ = get_largest_contour(image)
-        _, _, w, l = cv2.boundingRect(contour)
+    _, _, w, l = get_bounding_box(inp_array, image=image, factor=factor)
     return l, w
 
 # Define circle_contour as a global

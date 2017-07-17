@@ -72,8 +72,7 @@ def detect(image, resize=1.0, kernel=(11,11)):
     centroid, bounding_box = None, None
     if beam_is_present(M):
         centroid     = [pos//resize for pos in get_centroid(M)]
-        bounding_box = [val//resize for val in get_bounding_box(image_prep, 
-                                                                contour)]
+        bounding_box = [val//resize for val in get_bounding_box(contour)]
     return centroid, bounding_box
 
 def find(image, resize=1.0, kernel=(11,11)):
@@ -96,8 +95,7 @@ def find(image, resize=1.0, kernel=(11,11)):
         contour, _ = get_largest_contour(image_prep)
         M = get_moments(contour=contour)
         centroid     = [pos//resize for pos in get_centroid(M)]
-        bounding_box = [val//resize for val in get_bounding_box(image_prep, 
-                                                                contour)]
+        bounding_box = [val//resize for val in get_bounding_box(contour)]
         return centroid, bounding_box
     except NoContoursPresent:
         raise NoBeamPresent
