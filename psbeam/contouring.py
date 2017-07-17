@@ -20,7 +20,7 @@ import numpy as np
 ##########
 # Module #
 ##########
-from .images.templates import circle_small
+from .images.templates import circle
 from .beamexceptions import NoContoursPresent
 
 logger = logging.getLogger(__name__)
@@ -157,13 +157,38 @@ def get_bounding_box(image=None, contour=None):
         contour, _ = get_largest_contour(image)
         return cv2.boundingRect(contour)
 
-# Define circle_small_contour as a global
-circle_small_contour, _ = get_largest_contour(circle_small, factor=0)
+def get_contour_size(image=None, contour=None):
+    """
+    Returns the length and width of the contour, or the contour of the image
+    inputted.
+
+    Parameters
+    ----------
+    image : np.ndarray, optional
+        Image to find the length and width of the contour on.
+
+    contour : np.ndarray, optional
+        Contour to find the length and width for.
+
+    Returns
+    -------
+    tuple
+        Length and width of the inputted contour.
+    """
+    try:
+        _, _, w, l = cv2.boundingRect(contour)
+    except TypeError:
+        contour, _ = get_largest_contour(image)
+        _, _, w, l = cv2.boundingRect(contour)
+    return l, w
+
+# Define circle_contour as a global
+circle_contour, _ = get_largest_contour(circle, factor=0)
     
 def get_circularity(contour, method=1):
     """
     Returns a score of how circular a contour is by comparing it to the
-    contour of the template image, "circle_small.png." in the template_images
+    contour of the template image, "circle.png." in the template_images
     directory.
 
     Parameters
@@ -182,4 +207,4 @@ def get_circularity(contour, method=1):
         Value ranging from 0.0 to 1.0 where 0.0 is perfectly similar to a 
         circle.
     """
-    return cv2.matchShapes(circle_small_contour, contour, method, 0)
+    return cv2.matchShapes(circle_contour, contour, method, 0)
