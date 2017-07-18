@@ -23,14 +23,14 @@ from ..morph import get_opening
 from ..preprocessing import uint_resize_gauss
 from ..beamexceptions import NoContoursPresent
 from ..contouring import (get_largest_contour, get_moments, get_centroid,
-                               get_circularity)
+                          get_circularity, get_contour_size)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 def contouring_pipeline(array, height=None, width=None, resize=1.0, 
                         kernel=(13,13), prefix="", suffix="", save=0.1, desc="", 
-                        json_path=None, save_image=None, save_image_path=None):
+                        json_path=None, save_image=None, save_image_path=None,
+                        thresh_factor=2):
     """
     Runs a pipeline that returns:
         - DESC - Description of the plugin
@@ -47,19 +47,18 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
     image = np.reshape(array, (height, width))
     # Preprocess with a gaussian filter
     image_prep = uint_resize_gauss(image, fx=resize, fy=resize, 
-                                        kernel=kernel)
+                                   kernel=kernel)
 
     # The main pipeline
     try:
-        contour, area = get_largest_contour(image_prep)
+        contour, area = get_largest_contour(image_prep, factor=factor)
         M = get_moments(contour=contour)
         centroid = [pos//resize for pos in get_centroid(M)]
-        _, _, l, w = [val//resize for val in get_bounding_box(
-            image_prep, contour)]
+        l, w = [val//resize for val in get_contour_size(contour, factor=factor)]
         match = get_circularity(contours)
         beam_present = True
 
-    # No beam on Image
+    # No beam on Image, set values to make this clear
     except NoContoursPresent:
         beam_present = False
         area = -1
@@ -95,7 +94,8 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
         if np.random.uniform < save_image:
             # imwrite returns False if it fails to save
             if not cv2.imwrite(save_image_path, image):
-                save_image_path.touch()
+                # Make sure the parent folders exist, before trying again
+                save_image_path.mkdir(parents=True, exist_ok=True)
                 cv2.imwrite(save_image_path, image)
 
     return output
