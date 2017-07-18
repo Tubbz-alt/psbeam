@@ -8,6 +8,7 @@ calculated values from the inputted image.
 # Standard #
 ############
 import logging
+from datetime import datetime
 
 ###############
 # Third Party #
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 def contouring_pipeline(array, height=None, width=None, resize=1.0, 
                         kernel=(13,13), prefix="", suffix="", save=0.1, desc="", 
-                        json_path=None, save_image=None, save_image_path=None,
+                        json_path=None, save_image=None, save_image_dir=None,
                         thresh_factor=2):
     """
     Runs a pipeline that returns:
@@ -70,15 +71,16 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
 
     # Set the values in the dictionary
     output = {
-        "{0}:DESC":desc,
-        "{0}:BEAM".format(prefix) : beam_present, 
-        "{0}:CENT:X".format(prefix) : centroid[0], 
-        "{0}:CENT:Y".format(prefix) : centroid[1], 
-        "{0}:LENGTH".format(prefix) : l, 
-        "{0}:WIDTH".format(prefix) : w, 
-        "{0}:AREA".format(prefix) : area, 
-        "{0}:MATCH".format(prefix) : match,
-        "{0}:M".format(prefix) : np.array([M[m] for m in sorted(M.keys())]),
+        "{0}:DESC{1}".format(prefix, suffix):desc,
+        "{0}:BEAM{1}".format(prefix, suffix) : beam_present, 
+        "{0}:CENT:X{1}".format(prefix, suffix) : centroid[0], 
+        "{0}:CENT:Y{1}".format(prefix, suffix) : centroid[1], 
+        "{0}:LENGTH{1}".format(prefix, suffix) : l, 
+        "{0}:WIDTH{1}".format(prefix, suffix) : w, 
+        "{0}:AREA{1}".format(prefix, suffix) : area, 
+        "{0}:MATCH{1}".format(prefix, suffix) : match,
+        "{0}:M{1}".format(prefix, suffix) : np.array([M[m] for m in sorted(
+            M.keys())]),
            }
     
     # Saving as a json file 
@@ -89,12 +91,17 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
             sjson.dump(output, json, indent=4)
     
     # Save the image if save_image and a path is passed
-    if save_image is not None and save_image_path is not None:
+    if save_image is not None and save_image_dir is not None:
         # Save at random according to save_image
         if np.random.uniform < save_image:
+            # Create the save name for the image
+            save_image_path = save_image_dir / "{0}_image_{1}.png".format(
+                prefix, datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
             # imwrite returns False if it fails to save
-            if not cv2.imwrite(save_image_path, image):
+            if not cv2.imwrite(str(save_image_path), image):
                 # Make sure the parent folders exist, before trying again
+                logger.warn("Image path provided does not exist. Making " \
+                            "parent(s) directory(ies).")
                 save_image_path.mkdir(parents=True, exist_ok=True)
                 cv2.imwrite(save_image_path, image)
 
