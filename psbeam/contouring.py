@@ -141,7 +141,7 @@ def get_bounding_box(inp_array, image=True, factor=1):
         Array that can be the image contour or the image.
 
     image : bool
-    	Argument specifying that the inputted array is actually an image.
+        Argument specifying that the inputted array is actually an image.
 
     Returns
     -------
@@ -168,7 +168,7 @@ def get_contour_size(inp_array, image=False, factor=1):
         Array that can be the image contour or the image.
 
     image : bool
-    	Argument specifying that the inputted array is actually an image.
+        Argument specifying that the inputted array is actually an image.
 
     Returns
     -------
@@ -179,7 +179,7 @@ def get_contour_size(inp_array, image=False, factor=1):
     return l, w
 
 # Define circle_contour as a global
-circle_contour, _ = get_largest_contour(circle, factor=0)
+_circle_contour, _ = get_largest_contour(circle, factor=0)
     
 def get_circularity(contour, method=1):
     """
@@ -203,4 +203,4 @@ def get_circularity(contour, method=1):
         Value ranging from 0.0 to 1.0 where 0.0 is perfectly similar to a 
         circle.
     """
-    return cv2.matchShapes(circle_contour, contour, method, 0)
+    return cv2.matchShapes(_circle_contour, contour, method, 0)
