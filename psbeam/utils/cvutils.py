@@ -22,30 +22,6 @@ logger = logging.getLogger(__name__)
 #                                Image Operations                              #
 ################################################################################
 
-def to_uint8(image, mode="clip"):
-    """*Correctly* converts an image to uint8 type.
-    
-    Args:
-        image (np.ndarray): Image to be converted to uint8.
-    Returns:
-        np.ndarray. Converted Image.
-        
-    Running 'image.astype(np.uint8)' on its own applies a mod(256) to handle
-    values over 256. The correct way is to either clip (implemented here) or
-    normalize.
-    """
-    if not isinstance(image, np.ndarray):
-        image_array = np.array(image)
-    else:
-        image_array = image
-    if mode == "clip":
-        np.clip(image_array, 0, 255, out=image_array)
-    elif mode == "norm":
-        image_array *= 255/image_array.max()
-    else:
-        raise ValueError
-    return image_array.astype(np.uint8)
-
 def rolling_average (values, window):
     weights = np.repeat(1.0, window)/window
     return np.convolve(values, weights, 'valid')

@@ -11,7 +11,7 @@ from blbase import virtualmotor as vmotor
 from psp import Pv as pv
 from scipy.optimize import minimize, minimize_scalar, fmin
 from collections import Iterable
-from utils.cvUtils import to_uint8
+from .preprocessing import to_uint8
 import cv2
 import itertools
 import numpy as np
