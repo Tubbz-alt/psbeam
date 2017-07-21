@@ -25,6 +25,8 @@ dtypes = [np.int8, np.int16, np.int32, np.int64, np.uint16, np.uint32,
           np.uint64, np.float16, np.float32, np.float64]
 to_uint8_modes = ["clip", "norm", "scale"]
 
+# to_uint8
+
 def test_to_uint8_converts_arrays_to_uint8_dtype():
     for dtype in dtypes:
         array_test = np.zeros((N,N), dtype=dtype)
@@ -72,4 +74,33 @@ def test_to_uint8_scale_mode_transforms_arrays_correctly():
         array_scale = to_uint8(array_test, mode="scale")
         assert(np.isclose(array_scale, array_expected, atol=ATOL).all())
 
+# uint_resize_gausss
+        
+def test_uint_resize_gauss_converts_to_uint8():
+    for dtype in dtypes:
+        array_test = np.zeros((N,N), dtype=dtype)
+        assert(array_test.dtype != np.uint8)
+        array_prep = uint_resize_gauss(array_test)
+        assert(array_prep.dtype == np.uint8)
 
+def test_uint_resize_gauss_resizes_correctly():
+    n = 10
+    array_test = np.zeros((n, n))
+    sizes = np.arange(0.1, 1, 0.1)
+    for l, w in zip(sizes, sizes[::-1]):
+        array_prep = uint_resize_gauss(array_test, fx=w, fy=l)
+        assert(array_prep.shape == (int(l*n), int(w*n)))
+
+def test_uint_resize_gauss_blurs_correctly():
+    array_test = np.random.rand(N, N)
+    kernel = (3,3)
+    sigma = 0
+    array_blur = cv2.GaussianBlur(array_test, kernel, sigma)
+    array_prep = uint_resize_gauss(array_test)
+    assert(array_blur.all() == array_prep.all())
+
+# threshold_image
+
+
+
+        
