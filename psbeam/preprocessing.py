@@ -21,13 +21,27 @@ from .beamexceptions import InputError
 
 logger = logging.getLogger(__name__)
 
-def to_uint8(image, mode="norm"):
+def to_uint8(image, mode="scale"):
     """
     *Correctly* converts an image to uint8 type.
     
     Running 'image.astype(np.uint8)' on its own applies a mod(256) to handle
     values over 256. The correct way is to either clip (implemented here) or
-    normalize.
+    normalize to the the max and min possible values of the array.
+
+    Conversion Modes
+    ----------------
+    clip
+    	Truncates the  image at 0 and 255, then returns the resulting array.
+
+    norm
+    	Normalizes the image so that the maximum value of the input array is set
+    	to 255 and the minimum value is 0.
+    
+    scale
+    	Scales the image so that the maximum and minimum values of the resulting
+    	array corresponds to the maximum and minimum possible values of the
+    	input array.
 
     Parameters
     ----------
@@ -35,30 +49,60 @@ def to_uint8(image, mode="norm"):
         Image to be converted to uint8.
 
     mode : str, optional 
-        Conversion mode that either clips the image or normalizes to the range
-        of the original image type.
+        Conversion mode to use. See conversion modes for more details.
 
     Returns
     -------
     np.ndarray
-        Image that is an np.ndarray of dtype uint8.
+        Image that is a np.ndarray with dtype uint8.
     """
+    # The main hurdle with performing the clipping is making sure we don't
+    # create values that exceed the buffer size of the inputted dtype. For
+    # example, for float32 the maximum value is 65504.0 and the min value is
+    # 65504.0. If you try to find the range using a float32 by doing 65504.0 -
+    # (-65504.0) you will get Inf.
+    
     # Make sure the image is a numpy array
     if not isinstance(image, np.ndarray):
         image_array = np.array(image)
     else:
         image_array = np.copy(image)
+        
     # Clip or normalize the image
     if mode.lower() == "clip":
-        return cv2.convertScaleAbs(image_array)
+        output = np.clip(image_array, 0, 255)
+
+    # Normalize to max and min values of the array
     elif mode.lower() == "norm":
-        # Normalize according to the array max and min values
-        type_min = np.iinfo(image_array.dtype).min
-        type_max = np.iinfo(image_array.dtype).max
-        return cv2.convertScaleAbs(image_array, alpha=255/(type_max-type_min))
+        output = 255 * ((image_array - image_array.min()) /
+                        (image_array.max() - image_array.min()))
+        
+    # Scale according to the max and min possible values of the array
+    elif mode.lower() == "scale":
+        try:
+            # Grab array info for int types
+            type_min = np.iinfo(image_array.dtype).min
+            type_max = np.iinfo(image_array.dtype).max
+        except ValueError:
+            # Grab array info for float types
+            type_min = np.finfo(image_array.dtype).min
+            type_max = np.finfo(image_array.dtype).max
+        # Use half the range to guarantee we can fit the range in the variable
+        range_half = type_max/2 - type_min/2
+        output = ((image_array/2 - type_min/2)/range_half) * 255
+
     # Handle invalid inputs
-    raise InputError("Invalid conversion mode inputted. Valid modes are " \
-                     "'clip' and 'norm.'")
+    else:
+        raise InputError("Invalid conversion mode inputted. Valid modes are " 
+                         "'clip' and 'norm.'")
+
+    # Warn the user if the preprocessing resulted in a zeroed array
+    if not output.any() and image_array.any():
+        logger.warn("to_uint8 resulted in a fully zeroed array from non-zero "
+                    "input.")
+
+    # Return casting as uint8
+    return output.astype(np.uint8)
 
 def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11), 
                       sigma=0):
