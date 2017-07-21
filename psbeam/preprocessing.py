@@ -74,8 +74,8 @@ def to_uint8(image, mode="scale"):
 
     # Normalize to max and min values of the array
     elif mode.lower() == "norm":
-        output = 255 * ((image_array - image_array.min()) /
-                        (image_array.max() - image_array.min()))
+        range_pixels = image_array.max() - image_array.min() or 1        
+        output = 255 * (image_array - image_array.min()) / range_pixels
         
     # Scale according to the max and min possible values of the array
     elif mode.lower() == "scale":
@@ -104,7 +104,7 @@ def to_uint8(image, mode="scale"):
     # Return casting as uint8
     return output.astype(np.uint8)
 
-def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11), 
+def uint_resize_gauss(image, mode='scale', fx=1.0, fy=1.0, kernel=(11,11), 
                       sigma=0):
     """
     Preprocess the image by converting to uint8, resizing and running a 
@@ -142,20 +142,26 @@ def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
     """
     Thresholds the image according to one of the modes described below.
 
-    mean:
+    Threshold Modes
+    ---------------
+    mean
         Set the threshold line to be image.mean + image.std*factor.
-    top:
+
+    top
         Sets the threshold line to be image.max - image.std*factor, leaving just
         the highest intensity pixels.
-    bottom:
+
+    bottom
         Sets the threshold line to be image.min + image.std*factor, removing
         just the lowest intensity pixels
-    adaptive:
+
+    adaptive
         Sets threshold line according to a weighed sum of neughborhood values
         using a gaussian window. See 'Adaptive Thresholding' in the following
         link for more details.
         http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
-    otsu:
+
+    otsu
         Sets the threshold to be between the histogram peaks of a bimodal image.
         See "Otsu's Binarization" in the following for more details.
         http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
