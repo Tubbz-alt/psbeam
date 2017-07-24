@@ -86,13 +86,13 @@ def get_largest_contour(image=None, contours=None, thresh_mode="mean",
     """
     # Check if contours were inputted
     if contours is None:
-        contours = get_contours(image, thresh_mode=thresh_mode, **kwargs)    
+        contours = get_contours(image, thresh_mode=thresh_mode, **kwargs)
     # Get area of all the contours found
-    area = [cv2.contourArea(cnt) for cnt in contours]
+    areas = np.array([cv2.contourArea(cnt) for cnt in contours])
     # Return argmax and max
-    return contours[np.argmax(np.array(area))], np.array(area).max()
+    return contours[np.argmax(areas)], areas.max()
 
-def get_moments(image=None, contour=None):
+def get_moments(image=None, contour=None, **kwargs):
     """
     Returns the moments of an image.
 
@@ -113,10 +113,10 @@ def get_moments(image=None, contour=None):
     list
         List of zero, first and second image moments for x and y.
     """
-    try:
+    if contour is not None:
         return cv2.moments(contour)
-    except TypeError:
-        contour, _ = get_largest_contour(image)
+    else:
+        contour, _ = get_largest_contour(image, **kwargs)
         return cv2.moments(contour)
 
 def get_centroid(M):
