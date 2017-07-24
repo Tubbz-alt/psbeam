@@ -243,7 +243,7 @@ def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
     th : np.ndarray
         Image that has been thresholded.
     """
-    valid_modes = set('mean', 'top', 'bottom', 'adaptive', 'otsu')
+    valid_modes = set(['mean', 'top', 'bottom', 'adaptive', 'otsu'])
     if binary:
         th_type = cv2.THRESH_BINARY
     else:

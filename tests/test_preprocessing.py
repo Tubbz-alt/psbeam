@@ -129,9 +129,55 @@ def test_uint_resize_gauss_blurs_correctly():
 
 # threshold_image
 
-# def test_threshold_image_mean_mode():
-#     factors = (3, -3)
-#     lenna_bw = 
-#     lenna_thr_cv2 = cv2.threshold(lenna, lenna.mean() + lenna.std()
+def test_threshold_image_mean_mode():
+    factors = (3, -3)
+    lenna_gray = to_gray(lenna)
+    for factor in factors:
+        _, lenna_thr_cv2 = cv2.threshold(lenna_gray, lenna_gray.mean() + \
+                                         factor * lenna.std(), 255,
+                                         cv2.THRESH_BINARY)
+        lenna_thr_psb = threshold_image(lenna_gray, binary=True, mode="mean",
+                                        factor=factor)
+        assert(lenna_thr_cv2.all() == lenna_thr_cv2.all())
 
+def test_threshold_image_top_mode():
+    factors = (2, 3, 5)
+    lenna_gray = to_gray(lenna)
+    for factor in factors:
+        _, lenna_thr_cv2 = cv2.threshold(lenna_gray, lenna_gray.max() - \
+                                         factor * lenna.std(), 255,
+                                         cv2.THRESH_BINARY)
+        lenna_thr_psb = threshold_image(lenna_gray, binary=True, mode="top",
+                                        factor=factor)
+        assert(lenna_thr_cv2.all() == lenna_thr_cv2.all())
+
+def test_threshold_image_bottom_mode():
+    factors = (2, 3, 5)
+    lenna_gray = to_gray(lenna)
+    for factor in factors:
+        _, lenna_thr_cv2 = cv2.threshold(lenna_gray, lenna_gray.min() + \
+                                         factor * lenna.std(), 255,
+                                         cv2.THRESH_BINARY)
+        lenna_thr_psb = threshold_image(lenna_gray, binary=True, mode="bottom",
+                                        factor=factor)
+        assert(lenna_thr_cv2.all() == lenna_thr_cv2.all())
+
+def test_threshold_image_adaptive_mode():
+    lenna_gray = to_gray(lenna)
+    block_size = 11
+    c = 2
+    lenna_thr_cv2 = cv2.adaptiveThreshold(lenna_gray, 255,
+                                          cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                          cv2.THRESH_BINARY, block_size, c)
+    lenna_thr_psb = threshold_image(lenna_gray, binary=True, mode="adaptive",
+                                    C=c, blockSize=block_size)
+    assert(lenna_thr_cv2.all() == lenna_thr_cv2.all())
+
+def test_threshold_image_adaptive_mode():
+    lenna_gray = to_gray(lenna)
+    _, lenna_thr_cv2 = cv2.threshold(lenna_gray, 0, 255,
+                                  cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    lenna_thr_psb = threshold_image(lenna_gray, binary=True, mode="otsu")
+    assert(lenna_thr_cv2.all() == lenna_thr_cv2.all())
+    
         
