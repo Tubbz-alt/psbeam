@@ -21,34 +21,44 @@ import numpy as np
 # Module #
 ##########
 from .images.templates import circle
-from .beamexceptions import (NoContoursPresent, InputError)
+from .utils.cvutils import threshold_image
+from .beamexceptions import (NoContoursDetected, InputError)
 
 logger = logging.getLogger(__name__)
 
-def get_contours(image, factor=3):
+def get_contours(image, thresh_mode="mean", *args, **kwargs):
     """
-    Returns the contours of an image according to a mean-threshold.
+    Returns the contours of an image according to the inputted threshold.
 
     Parameters
     ----------
     image : np.ndarray
         Image to extract the contours from.
 
-    factor : int, optional
-        Number of times to multiply the std by before adding to the mean for
-        thresholding.
+    thresh_mode : str, optional
+    	Thresholding mode to use. For extended documentation see
+    	preprocessing.threshold_image. Valid modes are:
+    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
 
     Returns
     -------
     contours : list
         A list of the contours found in the image.
+
+    Raises
+    ------
+    NoContoursDetected
+    	The returned contours list was empty.
     """
-    _, image_thresh = cv2.threshold(
-        image, image.mean() + image.std()*factor, 255, cv2.THRESH_TOZERO)
-    _, contours, _ = cv2.findContours(image_thresh, 1, 2)
+    image_thresh = threshold_image(image, mode=thresh_mode, **kwargs)
+    _, contours, _ = cv2.findContours(image_thresh, 1, 2)    
+    # Check if contours is empty
+    if not contours:
+        raise NoContoursDetected
     return contours
 
-def get_largest_contour(image=None, contours=None, factor=3):
+def get_largest_contour(image=None, contours=None, thresh_mode="mean",
+                        **kwargs):
     """
     Returns largest contour of the contour list. Either an image or a contour
     must be passed.
@@ -64,10 +74,11 @@ def get_largest_contour(image=None, contours=None, factor=3):
     contours : np.ndarray, optional
         Contours found on an image.
 
-    factor : int, optional
-        Number of times to multiply the std by before adding to the mean for
-        thresholding.    
-
+    thresh_mode : str, optional
+    	Thresholding mode to use. For extended documentation see
+    	preprocessing.threshold_image. Valid modes are:
+    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+    
     Returns
     -------
     np.ndarray
@@ -75,10 +86,7 @@ def get_largest_contour(image=None, contours=None, factor=3):
     """
     # Check if contours were inputted
     if contours is None:
-        contours = get_contours(image, factor=factor)
-    # Check if contours is empty
-    if not contours:
-        raise NoContoursPresent
+        contours = get_contours(image, thresh_mode=thresh_mode, **kwargs)    
     # Get area of all the contours found
     area = [cv2.contourArea(cnt) for cnt in contours]
     # Return argmax and max
