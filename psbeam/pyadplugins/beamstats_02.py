@@ -17,7 +17,7 @@ from pathlib import Path
 ##########
 # Module #
 ##########
-from psbeam.beamexceptions import NoBeamPresent
+from psbeam.beamexceptions import NoBeamDetected
 import psbeam.beamdetector as psb
 import psbeam.preprocessing as prep
 
@@ -50,7 +50,7 @@ def stats_01(array, height=None, width=None, resize=1.0, kernel=(13,13)):
         beam_present = True
         l = l/255 * image.shape[0]
         w = w/255 * image.shape[1]
-    except NoBeamPresent:
+    except NoBeamDetected:
         beam_present = False
         area = 0
         centroid = [0,0]
@@ -90,7 +90,7 @@ def stats_02(array, height=None, width=None, resize=1.0, kernel=(13,13)):
         beam_present = True
         l = l/255 * image.shape[0]
         w = w/255 * image.shape[1]
-    except NoBeamPresent:
+    except NoBeamDetected:
         beam_present = False
         area = 0
         centroid = [0,0]

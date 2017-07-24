@@ -21,7 +21,7 @@
 # # Module #
 # ##########
 # import psbeam.preprocessing as prep
-# from psbeam.beamexceptions import NoBeamPresent
+# from psbeam.beamexceptions import NoBeamDetected
 # import psbeam.beamdetector as psb
 
 # logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@
 
 #             match = cv2.matchShapes(circ_cnt, contour, 1, 0.0)
 #             return image.sum(), image.mean(), centroid[0], centroid[1], l, w, match
-#         except NoBeamPresent:
+#         except NoBeamDetected:
 #             return None, None, None, None, None, None, None
 
 # def measure_beam_quality(detector, plugin, read_rate=None, num_reads=100):

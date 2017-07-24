@@ -23,7 +23,7 @@ import simplejson as sjson
 ##########
 from ..morph import get_opening
 from ..preprocessing import uint_resize_gauss
-from ..beamexceptions import NoContoursPresent
+from ..beamexceptions import NoContoursDetected
 from ..contouring import (get_largest_contour, get_moments, get_centroid,
                           get_circularity, get_contour_size)
 
@@ -68,7 +68,7 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
         beam_present = True
 
     # No beam on Image, set values to make this clear
-    except NoContoursPresent:
+    except NoContoursDetected:
         beam_present = False
         area = -1
         centroid = [-1,-1]

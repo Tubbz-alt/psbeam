@@ -17,7 +17,7 @@ import logging
 # Module #
 ##########
 from .preprocessing import uint_resize_gauss
-from .beamexceptions import (NoContoursPresent, NoBeamPresent)
+from .beamexceptions import (NoContoursDetected, NoBeamDetected)
 from .contouring import (get_largest_contour, get_moments, get_bounding_box, 
                          get_centroid)
 
@@ -36,7 +36,7 @@ def beam_is_present(M=None, image=None, contour=None, max_m0=10e5, min_m0=10):
     """    
     try:
         if not (M['m00'] < max_m0 and M['m00'] > min_m0):
-            raise BeamNotPresent
+            raise NoBeamDetected
     except (TypeError, IndexError):
         if contour:
             M = get_moments(contour=contour)
@@ -44,10 +44,10 @@ def beam_is_present(M=None, image=None, contour=None, max_m0=10e5, min_m0=10):
             try:
                 contour = get_largest_contour(image)
                 M = get_moments(contour=contour)
-            except NoContoursPresent:
-                raise NoBeamPresent
+            except NoContoursDetected:
+                raise NoBeamDetected
         if not (M['m00'] < max_m0 and M['m00'] > min_m0):
-            raise BeamNotPresent
+            raise NoBeamDetected
 
 def detect(image, resize=1.0, kernel=(11,11)):
     """
@@ -67,8 +67,8 @@ def detect(image, resize=1.0, kernel=(11,11)):
     try:
         contour = get_largest_contour(image_prep)
         M = get_moments(contour=contour)
-    except NoContoursPresent:
-        raise NoBeamPresent
+    except NoContoursDetected:
+        raise NoBeamDetected
     centroid, bounding_box = None, None
     if beam_is_present(M):
         centroid     = [pos//resize for pos in get_centroid(M)]
@@ -97,6 +97,6 @@ def find(image, resize=1.0, kernel=(11,11)):
         centroid     = [pos//resize for pos in get_centroid(M)]
         bounding_box = [val//resize for val in get_bounding_box(contour)]
         return centroid, bounding_box
-    except NoContoursPresent:
-        raise NoBeamPresent
+    except NoContoursDetected:
+        raise NoBeamDetected
 
