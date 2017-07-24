@@ -17,6 +17,7 @@ import numpy as np
 ##########
 # Module #
 ##########
+from psbeam.images import lenna
 from psbeam.preprocessing import (to_uint8, uint_resize_gauss, threshold_image)
 
 N = 2
@@ -101,6 +102,9 @@ def test_uint_resize_gauss_blurs_correctly():
 
 # threshold_image
 
-
+# def test_threshold_image_mean_mode():
+#     factors = (3, -3)
+#     lenna_bw = 
+#     lenna_thr_cv2 = cv2.threshold(lenna, lenna.mean() + lenna.std()
 
         
