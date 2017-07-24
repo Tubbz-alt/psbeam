@@ -25,16 +25,21 @@ def to_gray(image, color_space="RGB", cv2_color=None):
     """
     Converts the inputted image to gray scale.
 
+    This function should serve as a wrapper for cv2.cvtColor with basic input
+    checking. Its main use is to convert color images to gray scale but it can
+    be used as an alias to cv2.cvtColor if a color conversion code is passed
+    into cv2_color
+
     Parameters
     ----------
     image : np.ndarray
     	Image to convert to grayscale.
 
     color_space : str, optional
-    	Color space of the image. Valid entries are 'RGB', 'BGR'
+    	Color space of the image. Valid entries are 'RGB', 'BGR'.
 
     cv2_color : cv2.ColorConversionCodes
-    	OpenCV color conversion code. Overrides color_space if not None
+    	OpenCV color conversion code. Bypasses image array checks if used.
 
     Returns
     -------
@@ -47,26 +52,29 @@ def to_gray(image, color_space="RGB", cv2_color=None):
     	If input is not an image, image is not 3 channel or color_space is
     	invalid.
     """
-    # Check we are getting an image
-    if len(image.shape) < 2:
-        raise InputEarrror("Got array that is not an image. Shape is {0}.".format(
-            image.shape))
-    
-    # Check that it isn't already grayscale
-    if len(image.shape) < 3:
-        raise InputError("Got image that is already grayscale.")
-    
-    # Check color_space entry
+    # Check if an OpenCV color conversion was entered
     if cv2_color is not None:
         color = cv2_color
-    elif color_space.upper() == "RGB":
-        color = cv2.COLOR_RGB2GRAY
-    elif color_space.upper() == "BGR":
-        color = cv2.COLOR_BGR2GRAY
+        
     else:
-        raise InputError("Invalid color_space entry. Got '{0}'".format(
-            color_space))
-    
+        # Check we are getting an image
+        if len(image.shape) < 2:
+            raise InputError("Got array that is not an image. Shape is {0}."
+                             "".format(image.shape))
+
+        # Check that it isn't already grayscale
+        if len(image.shape) < 3:
+            raise InputError("Got image that is already grayscale.")
+
+        # Check for the color space
+        if color_space.upper() == "RGB":
+            color = cv2.COLOR_RGB2GRAY
+        elif color_space.upper() == "BGR":
+            color = cv2.COLOR_BGR2GRAY
+        else:
+            raise InputError("Invalid color_space entry. Got '{0}'".format(
+                color_space))
+
     # Do the conversion
     return cv2.cvtColor(image, color)
 

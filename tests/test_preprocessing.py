@@ -6,6 +6,7 @@ Tests for functions in the preprocessing module.
 ############
 # Standard #
 ############
+import pytest
 import logging
 
 ###############
@@ -17,14 +18,40 @@ import numpy as np
 ##########
 # Module #
 ##########
-from psbeam.images import lenna
-from psbeam.preprocessing import (to_uint8, uint_resize_gauss, threshold_image)
+from psbeam.beamexceptions import InputError
+from psbeam.images.templates import lenna
+from psbeam.preprocessing import (to_gray, to_uint8, uint_resize_gauss,
+                                  threshold_image)
 
 N = 2
 ATOL = 1
 dtypes = [np.int8, np.int16, np.int32, np.int64, np.uint16, np.uint32,
           np.uint64, np.float16, np.float32, np.float64]
 to_uint8_modes = ["clip", "norm", "scale"]
+
+# to_gray
+
+def test_to_gray_raises_inputerror_on_vectors():
+    vector = np.arange(10)
+    with pytest.raises(InputError):
+        to_gray(vector)
+
+def test_to_gray_raises_inputerror_on_gray_image():
+    image_gray = np.random.rand(10,10).astype(np.uint8)
+    with pytest.raises(InputError):
+        to_gray(image_gray)
+
+def test_to_gray_raises_inputerror_on_invalid_color_space():
+    with pytest.raises(InputError):
+        to_gray(lenna, color_space="test")
+
+def test_to_gray_correctly_converts_from_rgb():
+    lenna_gray_rgb_cv2 = cv2.cvtColor(lenna, cv2.COLOR_RGB2GRAY)
+    assert(lenna_gray_rgb_cv2.all() == to_gray(lenna, color_space="RGB").all())
+
+def test_to_gray_correctly_converts_from_bgr():
+    lenna_gray_bgr_cv2 = cv2.cvtColor(lenna, cv2.COLOR_BGR2GRAY)
+    assert(lenna_gray_bgr_cv2.all() == to_gray(lenna, color_space="BGR").all())
 
 # to_uint8
 
