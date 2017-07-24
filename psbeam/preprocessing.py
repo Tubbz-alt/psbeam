@@ -195,7 +195,7 @@ def uint_resize_gauss(image, mode='scale', fx=1.0, fy=1.0, kernel=(11,11),
     image_gblur = cv2.GaussianBlur(image_resized, kernel, sigma)
     return image_gblur
 
-def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
+def threshold_image(image, binary=True, mode="top", factor=1, **kwargs):
     """
     Thresholds the image according to one of the modes described below.
 

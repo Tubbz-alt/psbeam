@@ -21,7 +21,7 @@ import numpy as np
 # Module #
 ##########
 from .images.templates import circle
-from .utils.cvutils import threshold_image
+from .preprocessing import threshold_image
 from .beamexceptions import (NoContoursDetected, InputError)
 
 logger = logging.getLogger(__name__)
