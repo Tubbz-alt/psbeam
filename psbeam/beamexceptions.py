@@ -36,7 +36,7 @@ class NoContoursDetected(BeamException):
     def __init__(self, msg='', *args, **kwargs):
         if not msg:
             msg = "Cannot perform operation; No contours found."
-        super().__init__(msg=msg*args, **kwargs)
+        super().__init__(msg=msg, *args, **kwargs)
 
 class NoBeamDetected(BeamException):
     """
@@ -46,4 +46,4 @@ class NoBeamDetected(BeamException):
     def __init__(self, msg='', *args, **kwargs):
         if not msg:
             msg = "Cannot perform operation; No beam found."
-        super().__init__(msg=msg*args, **kwargs)
+        super().__init__(msg=msg, *args, **kwargs)
