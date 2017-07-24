@@ -19,7 +19,8 @@ import numpy as np
 # Module #
 ##########
 from psbeam.images.templates import (circle, lenna)
-from psbeam.contouring import (get_contours, get_largest_contour, get_moments)
+from psbeam.contouring import (get_contours, get_largest_contour, get_moments,
+                               get_centroid)
 from psbeam.preprocessing import (to_gray, threshold_image)
 from psbeam.beamexceptions import NoContoursDetected
 
@@ -81,4 +82,10 @@ def test_get_moments_returns_correct_moments_of_contour():
         assert(m in moments_psb.keys())
         assert(moments_cv2[m] == moments_psb[m])
         
+# get_centroid
 
+def test_get_centroid_returns_correct_centroids():
+    moments = get_moments(image=circle)
+    cent_x = int(moments['m10']/moments['m00'])
+    cent_y = int(moments['m01']/moments['m00'])
+    assert(get_centroid(moments) == (cent_x, cent_y))
