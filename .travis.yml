@@ -16,6 +16,9 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
+  # Download Openblas
+  - sudo apt-get install libopenblas-base
+  - export LD_LIBRARY_PATH=/usr/lib/openblas-base/
   #Grab all dependencies
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION coverage pip wheel ophyd bluesky opencv pytest -c conda-forge -c lightsource2-tag
   #Launch Conda environment
