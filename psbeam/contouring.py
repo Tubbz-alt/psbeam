@@ -84,6 +84,11 @@ def get_largest_contour(image=None, contours=None, thresh_mode="mean",
     -------
     np.ndarray
         Contour that encloses the largest area.
+
+    Raises
+    ------
+    InputError
+    	If neither an image nor contours are inputted.
     """
     # Check if contours were inputted
     if image is None and contours is None:
@@ -119,6 +124,11 @@ def get_moments(image=None, contour=None, **kwargs):
     -------
     list
         List of zero, first and second image moments for x and y.
+
+    Raises
+    ------
+    InputError
+    	If neither an image nor contours are inputted.    
     """
     if image is None and contour is None:
         raise InputError("No image or contour provided.")
@@ -197,6 +207,11 @@ def get_contour_size(image=None, contour=None, **kwargs):
     -------
     tuple
         Length and width of the inputted contour.
+
+    Raises
+    ------
+    InputError
+    	If neither an image nor contours are inputted.    
     """
     _, _, w, l = get_bounding_box(image=image, contour=contour, **kwargs)
     return l, w
