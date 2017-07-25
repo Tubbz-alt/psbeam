@@ -18,11 +18,14 @@ import numpy as np
 ##########
 # Module #
 ##########
+from psbeam.images.testing import beam_image_01
+from psbeam.images import templates
 from psbeam.images.templates import (circle, lenna)
-from psbeam.preprocessing import (to_gray, threshold_image)
+from psbeam.preprocessing import (to_gray, to_uint8, threshold_image)
 from psbeam.beamexceptions import (NoContoursDetected, InputError)
 from psbeam.contouring import (get_contours, get_largest_contour, get_moments,
-                               get_centroid, get_bounding_box, get_contour_size)
+                               get_centroid, get_bounding_box, get_contour_size,
+                               get_similarity)
 
 # get_contours
 
@@ -135,3 +138,31 @@ def test_get_moments_raises_inputerror_on_no_inputs():
     with pytest.raises(InputError):
         get_contour_size()
 
+# get_similarity
+
+def test_get_similarity_raises_inputerror_on_invalid_template():
+    with pytest.raises(InputError):
+        get_similarity(np.zeros((10)), template="TEST")
+
+def test_get_similarity_raises_inputerror_on_non_contour_array():
+    with pytest.raises(InputError):
+        get_similarity(np.zeros((10)), template=np.zeros((10,10)))
+
+def test_get_similarity_raises_inputerror_on_invalid_template_type():
+    with pytest.raises(InputError):
+        get_similarity(np.zeros((10)), template=False)
+
+def test_get_similarity_returns_valid_similarities_for_templates():
+    beam_contour, _ = get_largest_contour(beam_image_01)
+    for key, item in vars(templates).items():
+        if isinstance(item, np.ndarray):
+            template_contour, _ = get_largest_contour(to_gray(item))
+            reflexive_similarity = get_similarity(template_contour,
+                                                  template=key)
+            assert(reflexive_similarity == 0.0)
+            beam_similarity_str = get_similarity(beam_contour, template=key)
+            assert(0 <= beam_similarity_str <= 1.0)
+            beam_similarity_arr = get_similarity(beam_contour,
+                                                template=template_contour)
+            assert(beam_similarity_str == beam_similarity_arr)
+        
