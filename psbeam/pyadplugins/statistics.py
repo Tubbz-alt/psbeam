@@ -108,7 +108,7 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
             # imwrite returns False if it fails to save
             if not cv2.imwrite(str(save_image_path), image):
                 # Make sure the parent folders exist, before trying again
-                logger.warn("Image path provided does not exist. Making " \
+                logger.warning("Image path provided does not exist. Making " \
                             "parent(s) directory(ies).")
                 save_image_path.mkdir(parents=True, exist_ok=True)
                 cv2.imwrite(save_image_path, image)

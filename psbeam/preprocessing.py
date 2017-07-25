@@ -63,7 +63,7 @@ def to_gray(image, color_space="RGB", cv2_color=None):
 
         # Check that it isn't already grayscale
         if len(image.shape) < 3:
-            logger.warn("Got image that is already grayscale.")
+            logger.warning("Got image that is already grayscale.")
             return image
 
         # Check for the color space
@@ -155,7 +155,7 @@ def to_uint8(image, mode="scale"):
 
     # Warn the user if the preprocessing resulted in a zeroed array
     if not output.any() and image_array.any():
-        logger.warn("to_uint8 resulted in a fully zeroed array from non-zero "
+        logger.warning("to_uint8 resulted in a fully zeroed array from non-zero "
                     "input.")
 
     # Return casting as uint8

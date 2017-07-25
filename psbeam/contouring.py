@@ -95,7 +95,7 @@ def get_largest_contour(image=None, contours=None, thresh_mode="mean",
         raise InputError("No image or contours provided.")
     elif image is not None:
         if contours is not None:
-            logger.warn("Image and contours inputted. Returning largest contour"
+            logger.warning("Image and contours inputted. Returning largest contour"
                         " of the image.")
         contours = get_contours(image, thresh_mode=thresh_mode, **kwargs)
         
@@ -134,7 +134,7 @@ def get_moments(image=None, contour=None, **kwargs):
         raise InputError("No image or contour provided.")
     elif image is not None:
         if contour is not None:
-            logger.warn("Image and contour inputted. Using largest contour "
+            logger.warning("Image and contour inputted. Using largest contour "
                         "of the image.")
         contour, _ = get_largest_contour(image, **kwargs)
         
@@ -184,7 +184,7 @@ def get_bounding_box(image=None, contour=None, **kwargs):
         raise InputError("No image or contour provided.")
     elif image is not None:
         if contour is not None:
-            logger.warn("Image and contour inputted. Using largest contour "
+            logger.warning("Image and contour inputted. Using largest contour "
                         "of the image.")
         contour, _ = get_largest_contour(image, **kwargs)
         
