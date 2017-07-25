@@ -47,3 +47,14 @@ class NoBeamDetected(BeamException):
         if not msg:
             msg = "Cannot perform operation; No beam found."
         super().__init__(msg=msg, *args, **kwargs)
+
+        
+class MomentOutOfRange(BeamException):
+    """
+    Exception raised a beam moment is out of its designated range.
+    """
+    def __init__(self, msg='', *args, **kwargs):
+        if not msg:
+            msg = "Moment is out of specified range."
+        super().__init__(msg=msg, *args, **kwargs)
+    

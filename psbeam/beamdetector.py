@@ -17,7 +17,8 @@ import logging
 # Module #
 ##########
 from .preprocessing import uint_resize_gauss
-from .beamexceptions import (NoContoursDetected, NoBeamDetected)
+from .beamexceptions import (NoContoursDetected, NoBeamDetected,
+                             MomentOutOfRange)
 from .contouring import (get_largest_contour, get_moments, get_bounding_box, 
                          get_centroid)
 
@@ -50,11 +51,12 @@ def moments_within_range(M=None, image=None, contour=None, max_m0=10e5,
 
     Raises
     ------
-    NoBeamDetected
+    MomentOutOfRange
+    	If the zeroth moment is out of the specified range.
     """    
     try:
         if not (M['m00'] < max_m0 and M['m00'] > min_m0):
-            raise NoBeamDetected
+            raise MomentOutOfRange
     except (TypeError, IndexError):
         if contour:
             M = get_moments(contour=contour)
@@ -65,28 +67,43 @@ def moments_within_range(M=None, image=None, contour=None, max_m0=10e5,
             except NoContoursDetected:
                 raise NoBeamDetected
         if not (M['m00'] < max_m0 and M['m00'] > min_m0):
-            raise NoBeamDetected
+            raise MomentOutOfRange
 
-def detect(image, resize=1.0, kernel=(11,11)):
+def detect(image, resize=1.0, kernel=(11,11), thresh_mode="mean",
+           thresh_factor=1):
     """
     Checks for beam presence and returns the centroid and bounding box 
-    of the beam. Returns None if no beam is present.
+    of the beam. Raises a NoBeamDetected exception if no beam is found.
 
-    Args:
-        image (np.ndarray): Image to find the beam on.
-    Kwargs:
-        resize (float): Resize factor (1.0 keeps image same size).
-        kernel (tuple): Tuple of length 2 for gaussian kernel size.        
-    Returns:
-        tuple. Tuple of centroid and bounding box. None, None if no beam is
-            present.
+    Parameters
+    ----------
+    image : np.ndarray
+    	Image to detect the beam on
+    
+    resize : float, optional
+    	Resize factor (1.0 keeps image same size).
+    
+    kernel : tuple, optional
+    	Tuple of length 2 for gaussian kernel size.
+    
+    Returns
+    -------
+    tuple
+    	Tuple of centroid and bounding box
+
+    Raises
+    ------
+    NoBeamDetected
+    	If there was no beam found on the image.
     """
     image_prep = uint_resize_gauss(image, fx=resize, fy=resize, kernel=kernel)
     try:
-        contour, _ = get_largest_contour(image_prep)
+        contour, _ = get_largest_contour(image_prep, thresh_mode=thresh_mode,
+                                         factor=thresh_factor)
         M = get_moments(contour=contour)
-        centroid     = [pos//resize for pos in get_centroid(M)]
-        bounding_box = [val//resize for val in get_bounding_box(contour)]
+        centroid = [pos//resize for pos in get_centroid(M)]
+        bounding_box = [val//resize for val in get_bounding_box(
+            contour=contour)]
         return centroid, bounding_box
     except NoContoursDetected:
         raise NoBeamDetected
