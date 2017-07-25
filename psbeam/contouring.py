@@ -61,7 +61,8 @@ def get_largest_contour(image=None, contours=None, thresh_mode="mean",
                         **kwargs):
     """
     Returns largest contour of the contour list. Either an image or a contour
-    must be passed.
+    must be passed. If both are passed, a warning will be logged and the
+    contours of the image will be computed and used to find the largest contour.
 
     Function is making an implicit assumption that there will only be one
     (large) contour in the image. 
@@ -85,8 +86,14 @@ def get_largest_contour(image=None, contours=None, thresh_mode="mean",
         Contour that encloses the largest area.
     """
     # Check if contours were inputted
-    if contours is None:
+    if image is None and contours is None:
+        raise InputError("No image or contours provided.")
+    elif image is not None:
+        if contours is not None:
+            logger.warn("Image and contours inputted. Returning largest contour"
+                        " of the image.")
         contours = get_contours(image, thresh_mode=thresh_mode, **kwargs)
+        
     # Get area of all the contours found
     areas = np.array([cv2.contourArea(cnt) for cnt in contours])
     # Return argmax and max
@@ -113,12 +120,16 @@ def get_moments(image=None, contour=None, **kwargs):
     list
         List of zero, first and second image moments for x and y.
     """
-    if contour is not None:
-        return cv2.moments(contour)
-    else:
+    if image is None and contour is None:
+        raise InputError("No image or contour provided.")
+    elif image is not None:
+        if contour is not None:
+            logger.warn("Image and contour inputted. Using largest contour "
+                        "of the image.")
         contour, _ = get_largest_contour(image, **kwargs)
-        return cv2.moments(contour)
-
+        
+    return cv2.moments(contour)
+        
 def get_centroid(M):
     """
     Returns the centroid using the inputted image moments.
@@ -138,18 +149,18 @@ def get_centroid(M):
     """    
     return int(M['m10']/M['m00']), int(M['m01']/M['m00'])
 
-def get_bounding_box(inp_array, image=True, factor=1):
+def get_bounding_box(image=None, contour=None, **kwargs):
     """
     Finds the up-right bounding box that contains the inputted contour. Either
     an image or contours have to be passed.
 
     Parameters
     ----------
-    inp_array : np.ndarray
-        Array that can be the image contour or the image.
+    image : np.ndarray
+        Image to calculate moments from.
 
-    image : bool
-        Argument specifying that the inputted array is actually an image.
+    contour : np.ndarray
+        Beam contour.
 
     Returns
     -------
@@ -158,32 +169,36 @@ def get_bounding_box(inp_array, image=True, factor=1):
 
     It should be noted that the x and y coordinates are for the bottom left
     corner of the bounding box. Use matplotlib.patches.Rectangle to plot.
-    """    
-    if not image:
-        return cv2.boundingRect(inp_array)
-    else:
-        contour, _ = get_largest_contour(image=inp_array, factor=factor)
-        return cv2.boundingRect(contour)
+    """
+    if image is None and contours is None:
+        raise InputError("No image or contour provided.")
+    elif image is not None:
+        if contours is not None:
+            logger.warn("Image and contour inputted. Using largest contour "
+                        "of the image.")
+        contour, _ = get_largest_contour(image, **kwargs)
+        
+    return cv2.boundingRect(contour)
 
-def get_contour_size(inp_array, image=False, factor=1):
+def get_contour_size(image=None, contour=None, **kwargs):
     """
     Returns the length and width of the contour, or the contour of the image
     inputted.
 
     Parameters
     ----------
-    inp_array : np.ndarray
-        Array that can be the image contour or the image.
+    image : np.ndarray
+        Image to calculate moments from.
 
-    image : bool
-        Argument specifying that the inputted array is actually an image.
+    contour : np.ndarray
+        Beam contour.
 
     Returns
     -------
     tuple
         Length and width of the inputted contour.
     """
-    _, _, w, l = get_bounding_box(inp_array, image=image, factor=factor)
+    _, _, w, l = get_bounding_box(image=image, contour=contour, **kwargs)
     return l, w
 
 # Define circle_contour as a global
