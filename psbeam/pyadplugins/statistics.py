@@ -25,7 +25,7 @@ from ..morph import get_opening
 from ..preprocessing import uint_resize_gauss
 from ..beamexceptions import NoContoursDetected
 from ..contouring import (get_largest_contour, get_moments, get_centroid,
-                          get_circularity, get_contour_size)
+                          get_similarity, get_contour_size)
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
         - LENGTH - Length of the beam
         - WIDTH - Width of the beam
         - AREA - Area of the beam
-        - MATCH - Circularity of the beam
+        - MATCH - Similarity of the beam
         - M - Moments of the beam
 
     Returns
@@ -64,7 +64,7 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
         centroid = [pos//resize for pos in get_centroid(M)]
         l, w = [val//resize for val in get_contour_size(
             contour, factor=threshold_factor)]
-        match = get_circularity(contours)
+        match = get_similarity(contours)
         beam_present = True
 
     # No beam on Image, set values to make this clear
