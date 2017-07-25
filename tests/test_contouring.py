@@ -22,7 +22,7 @@ from psbeam.images.templates import (circle, lenna)
 from psbeam.preprocessing import (to_gray, threshold_image)
 from psbeam.beamexceptions import (NoContoursDetected, InputError)
 from psbeam.contouring import (get_contours, get_largest_contour, get_moments,
-                               get_centroid, get_bounding_box)
+                               get_centroid, get_bounding_box, get_contour_size)
 
 # get_contours
 
@@ -122,15 +122,14 @@ def test_get_moments_raises_inputerror_on_no_inputs():
 def test_get_contour_size_returns_correct_contour_size_of_image():
     circle_largest_cnt, _ = get_largest_contour(image=circle,
                                                 thresh_mode="mean")
-    circle_bounding_rect_cv2 = cv2.boundingRect(circle_largest_cnt)
-    assert(circle_bounding_rect_cv2 == get_contour_size(circle))
+    _, _, w, l = cv2.boundingRect(circle_largest_cnt)
+    assert((l, w) == get_contour_size(circle))
 
 def test_get_contour_size_returns_correct_contour_size_of_contour():
     circle_largest_cnt, _ = get_largest_contour(image=circle,
                                                 thresh_mode="mean")
-    circle_bounding_rect_cv2 = cv2.boundingRect(circle_largest_cnt)
-    assert(circle_bounding_rect_cv2 == get_contour_size(
-        contour=circle_largest_cnt))
+    _, _, w, l = cv2.boundingRect(circle_largest_cnt)
+    assert((l, w) == get_contour_size(contour=circle_largest_cnt))
     
 def test_get_moments_raises_inputerror_on_no_inputs():
     with pytest.raises(InputError):
