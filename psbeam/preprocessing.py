@@ -49,8 +49,7 @@ def to_gray(image, color_space="RGB", cv2_color=None):
     Raises
     ------
     InputError
-    	If input is not an image, image is not 3 channel or color_space is
-    	invalid.
+    	If input is not an image or color_space is invalid.
     """
     # Check if an OpenCV color conversion was entered
     if cv2_color is not None:
@@ -64,7 +63,8 @@ def to_gray(image, color_space="RGB", cv2_color=None):
 
         # Check that it isn't already grayscale
         if len(image.shape) < 3:
-            raise InputError("Got image that is already grayscale.")
+            logger.warn("Got image that is already grayscale.")
+            return image
 
         # Check for the color space
         if color_space.upper() == "RGB":

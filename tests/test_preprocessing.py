@@ -36,11 +36,6 @@ def test_to_gray_raises_inputerror_on_vectors():
     with pytest.raises(InputError):
         to_gray(vector)
 
-def test_to_gray_raises_inputerror_on_gray_image():
-    image_gray = np.random.rand(10,10).astype(np.uint8)
-    with pytest.raises(InputError):
-        to_gray(image_gray)
-
 def test_to_gray_raises_inputerror_on_invalid_color_space():
     with pytest.raises(InputError):
         to_gray(lenna, color_space="test")
