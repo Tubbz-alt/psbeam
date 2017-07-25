@@ -180,10 +180,10 @@ def get_bounding_box(image=None, contour=None, **kwargs):
     It should be noted that the x and y coordinates are for the bottom left
     corner of the bounding box. Use matplotlib.patches.Rectangle to plot.
     """
-    if image is None and contours is None:
+    if image is None and contour is None:
         raise InputError("No image or contour provided.")
     elif image is not None:
-        if contours is not None:
+        if contour is not None:
             logger.warn("Image and contour inputted. Using largest contour "
                         "of the image.")
         contour, _ = get_largest_contour(image, **kwargs)

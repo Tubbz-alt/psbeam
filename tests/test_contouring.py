@@ -22,7 +22,7 @@ from psbeam.images.templates import (circle, lenna)
 from psbeam.preprocessing import (to_gray, threshold_image)
 from psbeam.beamexceptions import (NoContoursDetected, InputError)
 from psbeam.contouring import (get_contours, get_largest_contour, get_moments,
-                               get_centroid)
+                               get_centroid, get_bounding_box)
 
 # get_contours
 
@@ -98,3 +98,21 @@ def test_get_centroid_returns_correct_centroids():
     cent_y = int(moments['m01']/moments['m00'])
     assert(get_centroid(moments) == (cent_x, cent_y))
 
+# get_bounding_box
+
+def test_get_bounding_box_returns_correct_bounding_box_of_image():
+    circle_largest_cnt, _ = get_largest_contour(image=circle,
+                                                thresh_mode="mean")
+    circle_bounding_rect_cv2 = cv2.boundingRect(circle_largest_cnt)
+    assert(circle_bounding_rect_cv2 == get_bounding_box(circle))
+
+def test_get_bounding_box_returns_correct_bounding_box_of_contour():
+    circle_largest_cnt, _ = get_largest_contour(image=circle,
+                                                thresh_mode="mean")
+    circle_bounding_rect_cv2 = cv2.boundingRect(circle_largest_cnt)
+    assert(circle_bounding_rect_cv2 == get_bounding_box(
+        contour=circle_largest_cnt))
+    
+def test_get_moments_raises_inputerror_on_no_inputs():
+    with pytest.raises(InputError):
+        get_bounding_box()
