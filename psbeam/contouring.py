@@ -20,8 +20,8 @@ import numpy as np
 ##########
 # Module #
 ##########
-from .images.templates import circle
-from .preprocessing import threshold_image
+from .images import templates
+from .preprocessing import (threshold_image, to_gray)
 from .beamexceptions import (NoContoursDetected, InputError)
 
 logger = logging.getLogger(__name__)
@@ -215,20 +215,18 @@ def get_contour_size(image=None, contour=None, **kwargs):
     """
     _, _, w, l = get_bounding_box(image=image, contour=contour, **kwargs)
     return l, w
-
-# Define circle_contour as a global
-_circle_contour, _ = get_largest_contour(circle, factor=0)
     
-def get_circularity(contour, method=1):
+def get_similarity(contour, template="circle", method=1, **kwargs):
     """
-    Returns a score of how circular a contour is by comparing it to the
-    contour of the template image, "circle.png." in the template_images
-    directory.
+    Returns a score of how similar a contour is to a selected template image.
 
     Parameters
     ----------
     contour : np.ndarray
-        Contour to be compared with the circle contour
+        Contour to be compared with the template contour
+
+    template : str or np.ndarray, optional
+    	String for template image to use, or can be a contour
 
     method : int, optional
         Matches the contours according to an enumeration from 0 to 2. To see
@@ -238,7 +236,41 @@ def get_circularity(contour, method=1):
     Returns
     -------
     float
-        Value ranging from 0.0 to 1.0 where 0.0 is perfectly similar to a 
-        circle.
+        Value ranging from 0.0 to 1.0 where 0.0 is perfectly similar to a the
+    	template image.
+
+    Raises
+    ------
+    InputError
+    	If string for template image is not in template images, np.ndarray for
+    	template image is not the right shape, invalid type passed for template.
     """
-    return cv2.matchShapes(_circle_contour, contour, method, 0)
+    # If template is a string, grab it from templates directory
+    if isinstance(template, str):
+        try:
+            template_image = getattr(templates, template)
+            # Make sure it is grayscale and uint8
+            if len(template_image.shape) != 2:
+                template_image = to_gray(template_image)
+            if template_image.dtype != np.uint8:
+                template_image = to_uint8(template_image)
+            template_contour, _ = get_largest_contour(template_image, **kwargs)
+        except AttributeError:
+            raise InputError("Inputted image '{0}' not an image template."
+                             "".format(template))
+
+    # If np.ndarray make sure it is a contour
+    elif isinstance(template, np.ndarray):
+        if len(template.shape) != 3 or (
+                template.shape[1], template.shape[2]) != (1, 2):
+            raise InputError("Inputted template contour does not have standard "
+                             "contour shape, must be (n, 1, 2), got {0}."
+                             "".format(template.shape))
+        template_contour = template
+
+    # Handle invalid inputs
+    else:
+        raise InputError("Inputted template must be str or nd.ndarray. Got "
+                         "{0}.".format(type(template)))
+                             
+    return cv2.matchShapes(template_contour, contour, method, 0)
