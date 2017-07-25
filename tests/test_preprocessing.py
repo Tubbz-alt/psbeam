@@ -102,6 +102,10 @@ def test_to_uint8_scale_mode_transforms_arrays_correctly():
         array_scale = to_uint8(array_test, mode="scale")
         assert(np.isclose(array_scale, array_expected, atol=ATOL).all())
 
+def test_to_uint8_raises_input_error_on_invalid_mode():
+    with pytest.raises(InputError):
+        to_uint8(np.arange(5), mode="TEST")
+        
 # uint_resize_gausss
         
 def test_uint_resize_gauss_converts_to_uint8():
