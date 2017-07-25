@@ -42,7 +42,7 @@ def stats_01(array, height=None, width=None, resize=1.0, kernel=(13,13)):
                                                 get_area=True)
         M = psb.get_moments(contour=contour)
         # Check if beam is in the image using the sum of the pixel values
-        # psb.beam_is_present(M=M)
+        # psb.moments_within_range(M=M)
         centroid = [pos//resize for pos in psb.get_centroid(M)]
         _, _, l, w = [val//resize for val in psb.get_bounding_box(
             image_prep, contour)]
@@ -82,7 +82,7 @@ def stats_02(array, height=None, width=None, resize=1.0, kernel=(13,13)):
                                                 get_area=True)
         M = psb.get_moments(contour=contour)
         # Check if beam is in the image using the sum of the pixel values
-        # psb.beam_is_present(M=M)
+        # psb.moments_within_range(M=M)
         centroid = [pos//resize for pos in psb.get_centroid(M)]
         _, _, l, w = [val//resize for val in psb.get_bounding_box(
             image_prep, contour)]
