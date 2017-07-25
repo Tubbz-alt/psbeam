@@ -19,10 +19,10 @@ import numpy as np
 # Module #
 ##########
 from psbeam.images.templates import (circle, lenna)
+from psbeam.preprocessing import (to_gray, threshold_image)
+from psbeam.beamexceptions import (NoContoursDetected, InputError)
 from psbeam.contouring import (get_contours, get_largest_contour, get_moments,
                                get_centroid)
-from psbeam.preprocessing import (to_gray, threshold_image)
-from psbeam.beamexceptions import NoContoursDetected
 
 # get_contours
 
@@ -62,6 +62,10 @@ def test_get_largest_contour_returns_largest_contour_of_contours():
     assert(lenna_largest_area_cv2 == lenna_largest_area_psb)
     assert(lenna_largest_cnt_cv2.all() == lenna_largest_cnt_psb.all())
 
+def test_get_largest_contour_raises_inputerror_on_no_inputs():
+    with pytest.raises(InputError):
+        get_largest_contour()
+    
 # get_moments
 
 def test_get_moments_returns_correct_moments_of_image():
@@ -81,6 +85,10 @@ def test_get_moments_returns_correct_moments_of_contour():
     for m in moments_cv2.keys():
         assert(m in moments_psb.keys())
         assert(moments_cv2[m] == moments_psb[m])
+
+def test_get_moments_raises_inputerror_on_no_inputs():
+    with pytest.raises(InputError):
+        get_moments()
         
 # get_centroid
 
@@ -89,3 +97,4 @@ def test_get_centroid_returns_correct_centroids():
     cent_x = int(moments['m10']/moments['m00'])
     cent_y = int(moments['m01']/moments['m00'])
     assert(get_centroid(moments) == (cent_x, cent_y))
+
