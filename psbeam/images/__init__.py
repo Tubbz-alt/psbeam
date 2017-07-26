@@ -17,7 +17,7 @@ import cv2
 ##########
 # Module #
 ##########
-from ..utils.cvutils import get_images_from_dir   #Change this to match depth
+from ..utils import get_images_from_dir   #Change this to match depth
 
 # Grab all the images in this directory
 template_images = get_images_from_dir(
