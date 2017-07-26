@@ -12,6 +12,10 @@ import logging
 ###############
 import cv2
 import numpy as np
+
+##########
+# Module #
+##########
 from .morph import get_opening
 from .preprocessing import uint_resize_gauss
 from .beamexceptions import (NoContoursDetected, NoBeamDetected,
@@ -19,15 +23,56 @@ from .beamexceptions import (NoContoursDetected, NoBeamDetected,
 from .contouring import (get_largest_contour, get_moments, get_centroid,
                          get_similarity)
 
-##########
-# Module #
-##########
-
 logger = logging.getLogger(__name__)
 
-def full_check(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=2,
-               cent_rtol=0.1, threshold_m00_min=50, threshold_m00_max=10e6,
-               threshold_similarity=0.067):
+def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
+                        min_area=100, factor=3, **kwargs):
+    """
+    Checks that a contour can be returned for two thresholds of the image.
+
+    Parameters
+    ----------
+    image : np.ndarray
+    	Image to check for contours
+
+    kernel : tuple, optional
+    	Kernel to use when gaussian blurring.
+
+    resize : float, optional
+    	How much to resize the image by before doing any calculations.
+
+    uint_mode : str, optional
+    	Conversion mode to use when converting to uint8
+
+    min_area : float, optional
+    	Minimum area of the otsu thresholded beam.
+
+    factor : int, float
+    	Factor to pass to the mean threshold.
+
+    Returns
+    -------
+    passes : bool
+    	True if the image passes the check, False if it does not
+    """
+    image_prep = uint_resize_gauss(image, mode=uint_mode, kernel=kernel,
+                                   fx=resize, fy=resize)
+    # Try to get contours of the image
+    try:
+        contour_mean, area_mean = get_largest_contour(
+            image_prep, thresh_mode="mean", factor=factor, **kwargs)        
+        contour_otsu, area_otsu = get_largest_contour(
+            image_prep, thresh_mode="otsu", **kwargs)
+        # Do the check for area
+        if area_otsu < min_area:
+            return False
+        return True
+    except NoContoursDetected:
+        return False        
+
+def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=2,
+                cent_rtol=0.1, threshold_m00_min=50, threshold_m00_max=10e6,
+                threshold_similarity=0.067):
     """
     Runs the full pipeline which includes:
         - Checks if there is beam by obtaining an image contour
@@ -40,7 +85,7 @@ def full_check(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=2,
     image : np.ndarray
         Image to process
 
-    centroids_ad : tuple
+    cbentroids_ad : tuple
         Centroids obtained from the areadetector stats plugin.
 
     resize : float, optional
@@ -79,9 +124,9 @@ def full_check(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=2,
         image_morph = get_opening(image_prep, n_erode=n_opening, 
                                   n_dilate=n_opening)
         # Grab the image contours
-        _, contours, _ = cv2.findContours(image_morph, 1, 2)
+        contours = get_contours(image_morph)
         # Grab the largest contour
-        contour, area = get_largest_contour(image_prep, contours=contours)
+        contour, area = get_largest_contour(contours=contours)
         # Image moments
         M = get_moments(contour=contour)
         # Find a centroid
@@ -154,7 +199,7 @@ def moments_within_range(M=None, image=None, contour=None, max_m0=10e5,
     	If the zeroth moment is out of the specified range.
     """    
     try:
-        if not (M['m00'] < max_m0 and M['m00'] > min_m0):
+        if not min_m0 <= M['m00'] <= max_m0:
             raise MomentOutOfRange
     except (TypeError, IndexError):
         if contour:
