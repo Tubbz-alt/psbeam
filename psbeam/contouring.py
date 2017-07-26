@@ -82,13 +82,13 @@ def get_largest_contour(image=None, contours=None, thresh_mode="otsu",
     
     Returns
     -------
-    np.ndarray
-        Contour that encloses the largest area.
+    (contour_largest, area_largest) : tuple
+        Contour that encloses the largest area and the area it encloses
 
     Raises
     ------
     InputError
-    	If neither an image nor contours are inputted.
+    	If neither an image nor contours are inputted, or largest area is zero
     """
     # Check if contours were inputted
     if image is None and contours is None:
@@ -101,8 +101,16 @@ def get_largest_contour(image=None, contours=None, thresh_mode="otsu",
         
     # Get area of all the contours found
     areas = np.array([cv2.contourArea(cnt) for cnt in contours])
+    # Largest contour and its area
+    contour_largest = contours[np.argmax(areas)]
+    area_largest = areas.max()
+
+    # Last check to make sure the area is nonzero:
+    if area_largest == 0.0:
+        raise NoContoursDetected
+    
     # Return argmax and max
-    return contours[np.argmax(areas)], areas.max()
+    return contour_largest, area_largest
 
 def get_moments(image=None, contour=None, **kwargs):
     """
@@ -122,8 +130,8 @@ def get_moments(image=None, contour=None, **kwargs):
 
     Returns
     -------
-    list
-        List of zero, first and second image moments for x and y.
+    moments : dict
+        Dictionary with all the calculated moments of the image.
 
     Raises
     ------
@@ -236,8 +244,7 @@ def get_similarity(contour, template="circle", method=1, **kwargs):
     Returns
     -------
     float
-        Value ranging from 0.0 to 1.0 where 0.0 is perfectly similar to a the
-    	template image.
+        Value that is 0.0 or larger, with 0.0 denoting a perfect matching
 
     Raises
     ------
