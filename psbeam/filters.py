@@ -17,7 +17,7 @@ import numpy as np
 # Module #
 ##########
 from .morph import get_opening
-from .preprocessing import uint_resize_gauss
+from .preprocessing import (uint_resize_gauss, threshold_image)
 from .beamexceptions import (NoContoursDetected, NoBeamDetected,
                              MomentOutOfRange)
 from .contouring import (get_largest_contour, get_moments, get_centroid,
@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
                         min_area=100, factor=3, **kwargs):
     """
-    Checks that a contour can be returned for two thresholds of the image.
+    Checks that a contour can be returned for two thresholds of the image, a
+    mean threshold and an otsu threshold.
 
     Parameters
     ----------
@@ -65,14 +66,17 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
             image_prep, thresh_mode="otsu", **kwargs)
         # Do the check for area
         if area_otsu < min_area:
+            logger.debug("Filter - Contour area, {0} is below the min area, "
+                         "{1}.".format(area_otsu, min_area))
             return False
         return True
     except NoContoursDetected:
+        logger.debug("Filter - No contours found on image.")        
         return False        
 
-def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=2,
-                cent_rtol=0.1, threshold_m00_min=50, threshold_m00_max=10e6,
-                threshold_similarity=0.067):
+def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
+                cent_atol=2, thresh_m00_min=50, thresh_m00_max=10e6,
+                thresh_similarity=0.067):
     """
     Runs the full pipeline which includes:
         - Checks if there is beam by obtaining an image contour
@@ -98,16 +102,16 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=2,
         Number of times to perform an erosion, followed by the same number of
         dilations.
 
-    cent_rtol : float, optional
-        Relative tolerance to use when comparing AD's and OpenCV's centroids.
+    cent_atol : float, optional
+        Absolute tolerance to use when comparing AD's and OpenCV's centroids.
 
-    threshold_m00_min : float, optional
+    thresh_m00_min : float, optional
         Lower threshold for the sum of pixels in the image.
 
-    threshold_m00_max : float, optional
+    thresh_m00_max : float, optional
         Upper threshold for the sum of pixels in the image.
 
-    threshold_cicularity : float, optional
+    thresh_similarity : float, optional
         Upper threshold for beam similarity score (0.0 is perfectly circular).
 
     Returns
@@ -120,13 +124,13 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=2,
         # Preprocessing
         image_prep = uint_resize_gauss(image, fx=resize, fy=resize, 
                                        kernel=kernel)
+        # Threshold the image
+        image_thresh = threshold_image(image_prep)
         # Morphological Opening
-        image_morph = get_opening(image_prep, n_erode=n_opening, 
+        image_morph = get_opening(image_thresh, n_erode=n_opening, 
                                   n_dilate=n_opening)
-        # Grab the image contours
-        contours = get_contours(image_morph)
         # Grab the largest contour
-        contour, area = get_largest_contour(contours=contours)
+        contour, area = get_largest_contour(image_morph)
         # Image moments
         M = get_moments(contour=contour)
         # Find a centroid
@@ -136,29 +140,27 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=2,
         
         # # Filters
         # Sum of pixel intensities must be between m00_min and m00_max
-        if M['m00'] < threshold_m00_min or M['m00'] > threshold_m00_max:
+        if not (thresh_m00_min <= M['m00'] <= thresh_m00_max):
             logger.debug("Filter - Image sum ouside specified range. Sum: "
-                         "{0}".format(M['m00']))
+                           "{0}. Min: {1}. Max: {2}".format(
+                               M['m00'], thresh_m00_min, thresh_m00_max))
             return False
         
         # The centroids of both ad and cv must be close
-        for cent_ad, cent_cv in zip(centroids_ad, centroids_cv):
-            if not np.isclose(cent_ad, cent_cv, rtol=cent_rtol):
+        for cent_ad, cent_cv2 in zip(centroids_ad, centroids_cv2):
+            if not np.isclose(cent_ad, cent_cv2, atol=cent_atol):
                 logger.debug("Filter - AD and OpenCV centroids not close. "
                              "AD Centroid: {0} OpenCV Centroid: {1}".format(
-                                 centroids_ad, centroids_cv))
+                                 centroids_ad, centroids_cv2))
                 return False
             
         # Check that the similarity of the beam is below the inputted threshold
-        if similarity > threshold_similarity:
-            logger.debug("Filter - Beam cicularity too low. Cicularity: "
+        if similarity > thresh_similarity:
+            logger.debug("Filter - Beam Sicularity too low. Sicularity: "
                          "{0}".format(similarity))
             return False
         
         # Everything passes
-        logger.debug("Filter - Passed all filters with sum: {0}, OpenCV "
-                     "centroids: {1}, AD Centroids: {2}, and similarity: {3}"
-                     "".format(M['m00'], cent_cv, cent_ad, similarity))
         return True
     
     except NoContoursDetected:

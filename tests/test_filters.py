@@ -24,9 +24,9 @@ from psbeam.images.testing import (beam_image_01, beam_image_02, beam_image_03,
                                    beam_image_04)
 from psbeam.beamexceptions import NoBeamDetected
 from psbeam.filters import (contour_area_filter, full_filter)
+from psbeam.beamdetector import detect
 
-from psbeam.preprocessing import (threshold_image)
-from psbeam.contouring import (get_contours, get_largest_contour)
+beam_images = [beam_image_01, beam_image_02, beam_image_03, beam_image_04]    
 
 # contour_area_filter
 
@@ -41,9 +41,52 @@ def test_contour_area_filter_returns_false_for_small_areas():
     assert(image_passes == False)
     
 def test_contour_area_filter_correctly_filters_beam_images():
-    beam_images = [beam_image_01, beam_image_02, beam_image_03, beam_image_04]
-    for image in beam_images:
+    for i, image in enumerate(beam_images):
         image_passes = contour_area_filter(image)
+        if image is beam_image_04:
+            assert(image_passes == False)
+        else:
+            assert(image_passes == True)
+
+# full_filter
+
+def test_full_filter_returns_true():
+    image_passes = full_filter(circle, (127,127), cent_atol=1000,
+                               thresh_m00_min=-10e9, thresh_m00_max=10e9,
+                               thresh_similarity=1000, kernel=(3,3))
+    assert(image_passes == True)
+    
+def test_full_filter_returns_false_on_moment_too_high():
+    image_passes = full_filter(circle, (127,127), cent_atol=100,
+                               thresh_m00_min=-10e9, thresh_m00_max=-10e8,
+                               thresh_similarity=1000, kernel=(3,3))
+    assert(image_passes == False)
+
+def test_full_filter_returns_false_on_moment_too_low():
+    image_passes = full_filter(circle, (127,127), cent_atol=1000,
+                               thresh_m00_min=10e8, thresh_m00_max=10e9,
+                               thresh_similarity=1000, kernel=(3,3))
+    assert(image_passes == False)
+
+def test_full_filter_returns_false_on_centriods_too_different():
+    image_passes = full_filter(circle, (0,0), cent_atol=1,
+                               thresh_m00_min=-10e9, thresh_m00_max=10e9,
+                               thresh_similarity=1000, kernel=(3,3))
+    assert(image_passes == False)
+
+def test_full_filter_returns_false_on_contour_too_dissimilar():
+    semi_circle = np.copy(circle)
+    semi_circle[:, :127] = 0
+    image_passes = full_filter(semi_circle, (127,127), cent_atol=100,
+                               thresh_m00_min=-10e9, thresh_m00_max=10e9,
+                               thresh_similarity=0.001, kernel=(3,3))
+    assert(image_passes == False)
+    
+def test_full_filter_returns_true_correctly():
+    for i, image in enumerate(beam_images):
+        cent, _ = detect(image)
+        image_passes = full_filter(image, cent, n_opening=0, kernel=(3,3),
+                                   thresh_m00_min=5, thresh_m00_max=100)
         if image is beam_image_04:
             assert(image_passes == False)
         else:
