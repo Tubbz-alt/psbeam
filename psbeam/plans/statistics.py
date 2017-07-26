@@ -1,28 +1,26 @@
-# """
-# OpenCV Bluesky Plans
-# """
-# ############
-# # Standard #
-# ############
-# import time
-# import logging
-# import multiprocessing
-# ###############
-# # Third Party #
-# ###############
-# import cv2
-# import bluesky
-# import numpy as np
+"""
+OpenCV Bluesky Plans
+"""
+############
+# Standard #
+############
+import time
+import logging
+import multiprocessing
+
+###############
+# Third Party #
+###############
+import cv2
+import bluesky
+import numpy as np
 # from ophyd import Device, Signal
 # from bluesky.utils import Msg
 # from bluesky.plans import mv, trigger_and_read, run_decorator, stage_decorator
 
-# ##########
-# # Module #
-# ##########
-# import psbeam.preprocessing as prep
-# from psbeam.beamexceptions import NoBeamDetected
-# import psbeam.beamdetector as psb
+##########
+# Module #
+##########
 
 # logger = logging.getLogger(__name__)
 
