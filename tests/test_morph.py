@@ -29,7 +29,7 @@ def test_get_opening_correctly_morphs_image():
     lenna_bw = threshold_image(lenna)
     n_erode = 5
     n_dilate = 5
-    kernel = np.ones((5,5),np.uint8)
+    kernel = (5,5)
 
     for i in range(n_erode):
         for j in range(n_dilate):
@@ -48,7 +48,7 @@ def test_get_closing_correctly_morphs_image():
     lenna_bw = threshold_image(lenna)
     n_erode = 5
     n_dilate = 5
-    kernel = np.ones((5,5),np.uint8)
+    kernel = (5,5)
 
     for i in range(n_erode):
         for j in range(n_dilate):
