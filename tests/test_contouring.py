@@ -161,7 +161,7 @@ def test_get_similarity_returns_valid_similarities_for_templates():
                                                   template=key)
             assert(reflexive_similarity == 0.0)
             beam_similarity_str = get_similarity(beam_contour, template=key)
-            assert(0 <= beam_similarity_str <= 1.0)
+            assert(0 <= beam_similarity_str)
             beam_similarity_arr = get_similarity(beam_contour,
                                                 template=template_contour)
             assert(beam_similarity_str == beam_similarity_arr)
