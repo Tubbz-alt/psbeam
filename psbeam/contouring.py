@@ -26,7 +26,7 @@ from .beamexceptions import (NoContoursDetected, InputError)
 
 logger = logging.getLogger(__name__)
 
-def get_contours(image, thresh_mode="mean", *args, **kwargs):
+def get_contours(image, thresh_mode="otsu", *args, **kwargs):
     """
     Returns the contours of an image according to the inputted threshold.
 
@@ -57,7 +57,7 @@ def get_contours(image, thresh_mode="mean", *args, **kwargs):
         raise NoContoursDetected
     return contours
 
-def get_largest_contour(image=None, contours=None, thresh_mode="mean",
+def get_largest_contour(image=None, contours=None, thresh_mode="otsu",
                         **kwargs):
     """
     Returns largest contour of the contour list. Either an image or a contour

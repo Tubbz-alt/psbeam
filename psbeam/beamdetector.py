@@ -21,7 +21,7 @@ from .beamexceptions import (NoContoursDetected, NoBeamDetected)
 from .contouring import (get_largest_contour, get_moments, get_bounding_box, 
                          get_centroid)
 
-def detect(image, resize=1.0, kernel=(11,11), thresh_mode="mean",
+def detect(image, resize=1.0, kernel=(11,11), thresh_mode="otsu",
            thresh_factor=1):
     """
     Checks for beam presence and returns the centroid and bounding box 

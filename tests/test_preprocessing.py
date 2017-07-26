@@ -135,7 +135,7 @@ def test_threshold_image_mean_mode():
         _, lenna_thr_cv2 = cv2.threshold(lenna_gray, lenna_gray.mean() + \
                                          factor * lenna.std(), 255,
                                          cv2.THRESH_BINARY)
-        lenna_thr_psb = threshold_image(lenna_gray, binary=True, mode="mean",
+        lenna_thr_psb = threshold_image(lenna_gray, binary=True, mode="otsu",
                                         factor=factor)
         assert(lenna_thr_cv2.all() == lenna_thr_cv2.all())
 

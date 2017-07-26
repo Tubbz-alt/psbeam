@@ -27,7 +27,7 @@ from psbeam.beamdetector import detect
 
 def test_detect_raises_nobeamdetected_when_no_beam():
     with pytest.raises(NoBeamDetected):
-        detect(np.zeros((50,50)))
+        detect(np.zeros((50,50), dtype=np.uint8))
 
 def test_detect_finds_center_of_circle():
     centroid, bounding_box = detect(circle)
