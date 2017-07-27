@@ -28,7 +28,7 @@ class InputError(BeamException):
     """
     pass
 
-class NoContoursDetected(BeamException):
+class NoContoursPresent(BeamException):
     """
     Error raised if an operation requiring contours is requested but no contours
     were returned by the get_contours function.
@@ -36,9 +36,9 @@ class NoContoursDetected(BeamException):
     def __init__(self, msg='', *args, **kwargs):
         if not msg:
             msg = "Cannot perform operation; No contours found."
-        super().__init__(msg=msg, *args, **kwargs)
+        super().__init__(msg=msg*args, **kwargs)
 
-class NoBeamDetected(BeamException):
+class NoBeamPresent(BeamException):
     """
     Exception raised if an operation requiring the beam is requested but no beam
     is actually present.
@@ -46,15 +46,4 @@ class NoBeamDetected(BeamException):
     def __init__(self, msg='', *args, **kwargs):
         if not msg:
             msg = "Cannot perform operation; No beam found."
-        super().__init__(msg=msg, *args, **kwargs)
-
-        
-class MomentOutOfRange(BeamException):
-    """
-    Exception raised a beam moment is out of its designated range.
-    """
-    def __init__(self, msg='', *args, **kwargs):
-        if not msg:
-            msg = "Moment is out of specified range."
-        super().__init__(msg=msg, *args, **kwargs)
-    
+        super().__init__(msg=msg*args, **kwargs)

@@ -8,13 +8,13 @@ import logging
 ###############
 import cv2
 import pytest
-# from pcdsdevices.sim import pim
-# from bluesky.plans import run_wrapper
+from pcdsdevices.sim import pim
+from bluesky.plans import run_wrapper
 
 ##########
 # Module #
 ##########
-# from .utils import collector
+from .utils import collector
 # from psbeam.plans import measure_beam_quality
 
 # logger = logging.getLogger(__name__)

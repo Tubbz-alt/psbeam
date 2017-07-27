@@ -44,7 +44,7 @@ def plot_image(image,  msg = ""):
 ################################################################################
 
 def get_images_from_dir(target_dir, n_images=None, shuffle=False, out_type=list,
-                        recursive=False, read_mode=cv2.IMREAD_UNCHANGED,
+                        recursive=False, read_mode=cv2.IMREAD_GRAYSCALE,
                         glob="*"):
     """
     Crawls through the contents of inputted directory and saves files with 
