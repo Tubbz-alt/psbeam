@@ -21,6 +21,63 @@ from .beamexceptions import InputError
 
 logger = logging.getLogger(__name__)
 
+def to_gray(image, color_space="RGB", cv2_color=None):
+    """
+    Converts the inputted image to gray scale.
+
+    This function should serve as a wrapper for cv2.cvtColor with basic input
+    checking. Its main use is to convert color images to gray scale but it can
+    be used as an alias to cv2.cvtColor if a color conversion code is passed
+    into cv2_color
+
+    Parameters
+    ----------
+    image : np.ndarray
+    	Image to convert to grayscale.
+
+    color_space : str, optional
+    	Color space of the image. Valid entries are 'RGB', 'BGR'.
+
+    cv2_color : cv2.ColorConversionCodes
+    	OpenCV color conversion code. Bypasses image array checks if used.
+
+    Returns
+    -------
+    image_gray : np.ndarray
+    	The image converted to gray scale (ie len(image.shape) is 2)
+
+    Raises
+    ------
+    InputError
+    	If input is not an image or color_space is invalid.
+    """
+    # Check if an OpenCV color conversion was entered
+    if cv2_color is not None:
+        color = cv2_color
+        
+    else:
+        # Check we are getting an image
+        if len(image.shape) < 2:
+            raise InputError("Got array that is not an image. Shape is {0}."
+                             "".format(image.shape))
+
+        # Check that it isn't already grayscale
+        if len(image.shape) < 3:
+            logger.warning("Got image that is already grayscale.")
+            return image
+
+        # Check for the color space
+        if color_space.upper() == "RGB":
+            color = cv2.COLOR_RGB2GRAY
+        elif color_space.upper() == "BGR":
+            color = cv2.COLOR_BGR2GRAY
+        else:
+            raise InputError("Invalid color_space entry. Got '{0}'".format(
+                color_space))
+
+    # Do the conversion
+    return cv2.cvtColor(image, color)
+
 def to_uint8(image, mode="scale"):
     """
     *Correctly* converts an image to uint8 type.
@@ -74,8 +131,8 @@ def to_uint8(image, mode="scale"):
 
     # Normalize to max and min values of the array
     elif mode.lower() == "norm":
-        output = 255 * ((image_array - image_array.min()) /
-                        (image_array.max() - image_array.min()))
+        range_pixels = image_array.max() - image_array.min() or 1        
+        output = 255 * (image_array - image_array.min()) / range_pixels
         
     # Scale according to the max and min possible values of the array
     elif mode.lower() == "scale":
@@ -98,13 +155,13 @@ def to_uint8(image, mode="scale"):
 
     # Warn the user if the preprocessing resulted in a zeroed array
     if not output.any() and image_array.any():
-        logger.warn("to_uint8 resulted in a fully zeroed array from non-zero "
+        logger.warning("to_uint8 resulted in a fully zeroed array from non-zero "
                     "input.")
 
     # Return casting as uint8
     return output.astype(np.uint8)
 
-def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11), 
+def uint_resize_gauss(image, mode='scale', fx=1.0, fy=1.0, kernel=(11,11), 
                       sigma=0):
     """
     Preprocess the image by converting to uint8, resizing and running a 
@@ -138,24 +195,30 @@ def uint_resize_gauss(image, mode='norm', fx=1.0, fy=1.0, kernel=(11,11),
     image_gblur = cv2.GaussianBlur(image_resized, kernel, sigma)
     return image_gblur
 
-def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
+def threshold_image(image, binary=True, mode="top", factor=1, **kwargs):
     """
     Thresholds the image according to one of the modes described below.
 
-    mean:
+    Threshold Modes
+    ---------------
+    mean
         Set the threshold line to be image.mean + image.std*factor.
-    top:
+
+    top
         Sets the threshold line to be image.max - image.std*factor, leaving just
         the highest intensity pixels.
-    bottom:
+
+    bottom
         Sets the threshold line to be image.min + image.std*factor, removing
         just the lowest intensity pixels
-    adaptive:
+
+    adaptive
         Sets threshold line according to a weighed sum of neughborhood values
         using a gaussian window. See 'Adaptive Thresholding' in the following
         link for more details.
         http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
-    otsu:
+
+    otsu
         Sets the threshold to be between the histogram peaks of a bimodal image.
         See "Otsu's Binarization" in the following for more details.
         http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
@@ -180,7 +243,7 @@ def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
     th : np.ndarray
         Image that has been thresholded.
     """
-    valid_modes = set('mean', 'top', 'bottom', 'adaptive', 'otsu')
+    valid_modes = set(['mean', 'top', 'bottom', 'adaptive', 'otsu'])
     if binary:
         th_type = cv2.THRESH_BINARY
     else:
@@ -193,7 +256,7 @@ def threshold_image(image, binary=True, mode="top", factor=3, **kwargs):
         _, th = cv2.threshold(image, image.mean() + image.std()*factor, 255,
                               th_type)        
     elif mode.lower() == 'top':
-        _, th = cv2.threshold(image, image.max() + image.std()*factor, 255,
+        _, th = cv2.threshold(image, image.max() - image.std()*factor, 255,
                               th_type)
     elif mode.lower() == 'bottom':
         _, th = cv2.threshold(image, image.min() + image.std()*factor, 255,
