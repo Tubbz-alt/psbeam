@@ -17,7 +17,7 @@ from pathlib import Path
 ##########
 # Module #
 ##########
-from psbeam.beamexceptions import NoBeamDetected
+from psbeam.beamexceptions import NoBeamPresent
 import psbeam.beamdetector as psb
 import psbeam.preprocessing as prep
 

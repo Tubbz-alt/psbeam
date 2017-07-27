@@ -23,9 +23,9 @@ import simplejson as sjson
 ##########
 from ..morph import get_opening
 from ..preprocessing import uint_resize_gauss
-from ..beamexceptions import NoContoursDetected
+from ..beamexceptions import NoContoursPresent
 from ..contouring import (get_largest_contour, get_moments, get_centroid,
-                          get_similarity, get_contour_size)
+                          get_circularity, get_contour_size)
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
         - LENGTH - Length of the beam
         - WIDTH - Width of the beam
         - AREA - Area of the beam
-        - MATCH - Similarity of the beam
+        - MATCH - Circularity of the beam
         - M - Moments of the beam
 
     Returns
@@ -64,11 +64,11 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
         centroid = [pos//resize for pos in get_centroid(M)]
         l, w = [val//resize for val in get_contour_size(
             contour, factor=threshold_factor)]
-        match = get_similarity(contours)
+        match = get_circularity(contours)
         beam_present = True
 
     # No beam on Image, set values to make this clear
-    except NoContoursDetected:
+    except NoContoursPresent:
         beam_present = False
         area = -1
         centroid = [-1,-1]
@@ -108,7 +108,7 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
             # imwrite returns False if it fails to save
             if not cv2.imwrite(str(save_image_path), image):
                 # Make sure the parent folders exist, before trying again
-                logger.warning("Image path provided does not exist. Making " \
+                logger.warn("Image path provided does not exist. Making " \
                             "parent(s) directory(ies).")
                 save_image_path.mkdir(parents=True, exist_ok=True)
                 cv2.imwrite(save_image_path, image)
