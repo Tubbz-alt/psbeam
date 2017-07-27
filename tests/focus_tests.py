@@ -2,7 +2,7 @@ import numpy as np
 import autoFocus.focus as af
 import cv2
 from nose.tools import *
-from utils.cvUtils import  get_images_from_dir
+from .utils import  get_images_from_dir
 import pdb
 
 class TestDetector(object):

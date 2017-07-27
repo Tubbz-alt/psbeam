@@ -15,7 +15,7 @@ from pyadplugin import ADPluginServer, ADPluginFunction
 ##########
 # Module #
 ##########
-from psbeam.beamexceptions import NoBeamPresent
+from psbeam.beamexceptions import NoBeamDetected
 import psbeam.beamdetector as psb
 import psbeam.preprocessing as prep
 
@@ -35,12 +35,12 @@ def stats_01(array, height=None, width=None, resize=1.0, kernel=(13,13)):
                                                 get_area=True)
         M = psb.get_moments(contour=contour)
         # Check if beam is in the image using the sum of the pixel values
-        psb.beam_is_present(M=M)
+        psb.moments_within_range(M=M)
         centroid = [pos//resize for pos in psb.get_centroid(M)]
         _, _, l, w = [val//resize for val in psb.get_bounding_box(
             image_prep, contour)]
         beam_present = True
-    except NoBeamPresent:
+    except NoBeamDetected:
         beam_present = False
         area = 0
         centroid = [0,0]

@@ -1,28 +1,26 @@
-# """
-# OpenCV Bluesky Plans
-# """
-# ############
-# # Standard #
-# ############
-# import time
-# import logging
-# import multiprocessing
-# ###############
-# # Third Party #
-# ###############
-# import cv2
-# import bluesky
-# import numpy as np
+"""
+OpenCV Bluesky Plans
+"""
+############
+# Standard #
+############
+import time
+import logging
+import multiprocessing
+
+###############
+# Third Party #
+###############
+import cv2
+import bluesky
+import numpy as np
 # from ophyd import Device, Signal
 # from bluesky.utils import Msg
 # from bluesky.plans import mv, trigger_and_read, run_decorator, stage_decorator
 
-# ##########
-# # Module #
-# ##########
-# import psbeam.preprocessing as prep
-# from psbeam.beamexceptions import NoBeamPresent
-# import psbeam.beamdetector as psb
+##########
+# Module #
+##########
 
 # logger = logging.getLogger(__name__)
 
@@ -54,7 +52,7 @@
 
 #             match = cv2.matchShapes(circ_cnt, contour, 1, 0.0)
 #             return image.sum(), image.mean(), centroid[0], centroid[1], l, w, match
-#         except NoBeamPresent:
+#         except NoBeamDetected:
 #             return None, None, None, None, None, None, None
 
 # def measure_beam_quality(detector, plugin, read_rate=None, num_reads=100):
