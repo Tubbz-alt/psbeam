@@ -1,0 +1,11 @@
+[run]
+source =
+    psbeam
+[report]
+omit =
+    #tests
+    */tests/*
+    *test*
+    #versioning
+    .*version.*
+    *_version.py
