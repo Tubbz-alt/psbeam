@@ -18,9 +18,26 @@ import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 
-################################################################################
-#                                Image Operations                              #
-################################################################################
+
+def isiterable(obj):
+    """
+    Function that determines if an object is an iterable, not including 
+    str.
+
+    Parameters
+    ----------
+    obj : object
+        Object to test if it is an iterable.
+
+    Returns
+    -------
+    bool : bool
+        True if the obj is an iterable, False if not.
+    """
+    if isinstance(obj, str):
+        return False
+    else:
+        return isinstance(obj, Iterable)
 
 def rolling_average (values, window):
     weights = np.repeat(1.0, window)/window
@@ -38,10 +55,6 @@ def plot_image(image,  msg = ""):
                 transform=ax.transAxes)
     plt.grid()
     plt.show()
-
-################################################################################
-#                                   Image I/O                                  #
-################################################################################
 
 def get_images_from_dir(target_dir, n_images=None, shuffle=False, out_type=list,
                         recursive=False, read_mode=cv2.IMREAD_UNCHANGED,
