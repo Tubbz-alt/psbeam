@@ -6,7 +6,8 @@ OpenCV Bluesky Plans
 ############
 import time
 import logging
-import multiprocessing
+from multiprocessing import Pool
+from functools import partial
 
 ###############
 # Third Party #
@@ -14,6 +15,7 @@ import multiprocessing
 import cv2
 import bluesky
 import numpy as np
+from pswalker.plans import measure
 # from ophyd import Device, Signal
 # from bluesky.utils import Msg
 # from bluesky.plans import mv, trigger_and_read, run_decorator, stage_decorator
@@ -21,13 +23,91 @@ import numpy as np
 ##########
 # Module #
 ##########
+from ..filters import contour_area_filter
 
-# logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
-# # Globals
-# circ = cv2.imread("/reg/neh/home5/apra/work/python/psbeam/psbeam/images" \
-#                   "/circle_small.png", 0)
-# circ_cnt = psb.get_contours(circ, factor=0)[0]
+
+# def process_det_data(data, detector):
+
+#     for d in data[detector.name]:
+#     pass
+
+# def process_all_data(data, detectors, n_pool=None):
+#     """
+#     Process the data and return the results
+
+#     Returns
+#     -------
+#     results : dict
+#     	Dictionary of detector name to beam statistics
+#     """
+#     results_final = {}
+#     pool = Pool(n_pool)
+    
+#     stat_list = ["sum_mn",         # Mean of the sum of pixels
+#                  "sum_std",        # Std of sum of the pixels
+#                  "mean_mn",        # Mean of the mean of pixels
+#                  "mean_std",       # St of the mean of pixels
+#                  "centroid_x_mn",  # Mean of centroid x
+#                  "centroid_x_std", # Std of centroid x
+#                  "centroid_y_mn",  # Mean of centroid y
+#                  "centroid_y_std", # Std of centroid y
+#                  "length_mn",      # Mean of the beam length
+#                  "length_std",     # Std of the beam length
+#                  "width_mn",       # Mean of the beam width
+#                  "width_std",      # Std of the beam width
+#                  "match_mn",       # Mean beam similarity score
+#                  "match_std"]      # Std beam similarity score
+    
+#     for det in detectors:
+#         results_det = {}
+#         # Get all the data involved with this detector
+#         all_stats = zip(*(pool.map(partial(process_det_data, detector=det),
+#                                   data[det.name])))
+#         for stat_key, stat in zip(stat_list, all_stats):
+#             stat_array = np.array(stat)
+
+# def to_image(array, detector):
+#     """
+#     Reshapes the inputted array according the image shapes specified by the
+#     detector.
+#     """
+#     return np.reshape(np.array(array), (detector.cam.size.size_y.value,
+#                                         detector.cam.size.size_x.value))
+
+# def characterize(detectors, image_field, num=10, filters=None, delay=None,
+#                  drop_missing=True, kernel=(9,9), resize=1.0, uint_mode="scale",
+#                  min_area=100, factor=3, n_pool=None, **kwargs):
+#     """
+#     Returns a dictionary containing all the relevant statistics of the beam.
+#     """
+#     # Stash the read_attrs of the detectors
+#     read_attr_orig = {det.name : det.read_attrs for det in detectors}
+#     # Replace the read_attrs with the image attr
+#     for det in detectors:
+#         det.read_attrs = [image_field]
+
+#     # Apply the default filter
+#     if filters is None:
+#         filters = {image_field : lambda image : contour_area_filter(
+#             to_image(image), kernel=kernel, resize=resize, uint_mode=uint_mode,
+#             min_area=min_area, factor=factor, **kwargs)}
+    
+#     # Get images for all the shots
+#     data = yield from measure(detectors, num=num, delay=delay, filters=filters
+#                                 drop_missing=drop_missing)
+    
+#     # Process the data    
+#     results = process_data(data, detectors, n_pool=Pool)
+    
+#     # Set the read_attrs back
+#     for det in detectors:
+#         det.read_attrs = read_attr_orig[det.name]
+                                
+#     # return
+#     return results
+
 
 # class Processor(object):
 #     def __init__(self,resize=1.0, kernel=(13,13)):
