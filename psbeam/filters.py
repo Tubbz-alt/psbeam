@@ -75,7 +75,7 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
         return False        
 
 def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
-                cent_atol=2, thresh_m00_min=50, thresh_m00_max=10e6,
+                cent_atol=2, thresh_m00_min=10, thresh_m00_max=10e6,
                 thresh_similarity=0.067):
     """
     Runs the full pipeline which includes:
