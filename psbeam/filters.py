@@ -48,7 +48,7 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
     min_area : float, optional
     	Minimum area of the otsu thresholded beam.
 
-    factor : int, float
+    factor : float
     	Factor to pass to the mean threshold.
 
     Returns
@@ -89,7 +89,7 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
     image : np.ndarray
         Image to process
 
-    cbentroids_ad : tuple
+    centroids_ad : tuple
         Centroids obtained from the areadetector stats plugin.
 
     resize : float, optional
