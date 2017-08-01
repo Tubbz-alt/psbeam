@@ -25,8 +25,8 @@ from pswalker.plans import measure
 ##########
 from .utils import collector
 from .conftest import beam_images
-from psbeam.plans.statistics import (process_image, process_det_data,
-                                     characterize_beam)
+from psbeam.plans.characterize import (process_image, process_det_data,
+                                       characterize_beam)
 from psbeam.beamdetector import detect
 from psbeam.beamexceptions import (NoBeamDetected, NoContoursDetected)
 from psbeam.filters import contour_area_filter

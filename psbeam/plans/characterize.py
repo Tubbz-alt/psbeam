@@ -16,9 +16,6 @@ import cv2
 import bluesky
 import numpy as np
 from pswalker.plans import measure
-# from ophyd import Device, Signal
-# from bluesky.utils import Msg
-# from bluesky.plans import mv, trigger_and_read, run_decorator, stage_decorator
 
 ##########
 # Module #
@@ -163,10 +160,11 @@ def process_det_data(data, detectors, det_sizes, kernel=(13,13), uint_mode="scal
         
     return result
 
-def characterize(detectors, image_signal, size_signal, num=10, filters=None,
-                 delay=None, drop_missing=True, kernel=(9,9), resize=1.0,
-                 uint_mode="scale", min_area=100, thresh_factor=3, filter_kernel=(9,9),
-                 thresh_mode="otsu", **kwargs):
+def characterize_beam(detectors, image_signal, size_signal, num=10,
+                      filters=None, delay=None, drop_missing=True, kernel=(9,9),
+                      resize=1.0, uint_mode="scale", min_area=100,
+                      thresh_factor=3, filter_kernel=(9,9), thresh_mode="otsu",
+                      **kwargs):
     """
     Returns a dictionary containing all the relevant statistics of the beam.
     """
