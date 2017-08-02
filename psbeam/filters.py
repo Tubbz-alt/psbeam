@@ -26,7 +26,7 @@ from .contouring import (get_largest_contour, get_moments, get_centroid,
 logger = logging.getLogger(__name__)
 
 def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
-                        min_area=100, factor=3, **kwargs):
+                        min_area=100, min_area_factor=3, factor=3, **kwargs):
     """
     Checks that a contour can be returned for two thresholds of the image, a
     mean threshold and an otsu threshold.
@@ -51,6 +51,10 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
     factor : float
     	Factor to pass to the mean threshold.
 
+    min_area_factor : float
+    	The amount to scale down the area for comparison with the mean threshold
+    	contour area.
+
     Returns
     -------
     passes : bool
@@ -58,25 +62,28 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
     """
     image_prep = uint_resize_gauss(image, mode=uint_mode, kernel=kernel,
                                    fx=resize, fy=resize)
+    
     # Try to get contours of the image
     try:
         contour_mean, area_mean = get_largest_contour(
             image_prep, thresh_mode="mean", factor=factor, **kwargs)        
         contour_otsu, area_otsu = get_largest_contour(
             image_prep, thresh_mode="otsu", **kwargs)
+        
         # Do the check for area
-        if area_otsu < min_area:
+        if area_otsu < min_area or area_mean < min_area/min_area_factor:
             logger.debug("Filter - Contour area, {0} is below the min area, "
                          "{1}.".format(area_otsu, min_area))
             return False
         return True
+    
     except NoContoursDetected:
         logger.debug("Filter - No contours found on image.")        
         return False        
 
 def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
                 cent_atol=2, thresh_m00_min=10, thresh_m00_max=10e6,
-                thresh_similarity=0.067):
+                thresh_similarity=0.067, thresh_mode="otsu"):
     """
     Runs the full pipeline which includes:
         - Checks if there is beam by obtaining an image contour
@@ -114,6 +121,11 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
     thresh_similarity : float, optional
         Upper threshold for beam similarity score (0.0 is perfectly circular).
 
+    thresh_mode : str, optional
+    	Thresholding mode to use. For extended documentation see
+    	preprocessing.threshold_image. Valid modes are:
+    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+
     Returns
     -------
     bool
@@ -125,12 +137,13 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
         image_prep = uint_resize_gauss(image, fx=resize, fy=resize, 
                                        kernel=kernel)
         # Threshold the image
-        image_thresh = threshold_image(image_prep)
+        image_thresh = threshold_image(image_prep, mode=thresh_mode)
         # Morphological Opening
         image_morph = get_opening(image_thresh, n_erode=n_opening, 
-                                  n_dilate=n_opening)
+                                  n_dilate=n_opening, kernel=(9,9))
         # Grab the largest contour
-        contour, area = get_largest_contour(image_morph)
+        contour, area = get_largest_contour(image_morph,
+                                            thresh_mode=thresh_mode)
         # Image moments
         M = get_moments(contour=contour)
         # Find a centroid

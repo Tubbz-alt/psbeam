@@ -19,6 +19,8 @@ from pcdsdevices.sim.areadetector.detectors import SimDetector
 ##########
 from psbeam.images.testing import (beam_image_01, beam_image_02, beam_image_03,
                                    beam_image_04)
+from psbeam.images.testing.hx2 import images as images_hx2
+from psbeam.images.testing.dg3 import images as images_dg3
 
 beam_images = [beam_image_01, beam_image_02, beam_image_03, beam_image_04]
 
@@ -69,10 +71,10 @@ def RE():
     RE.msg_hook = collector
     return RE
 
-def yield_seq_beam_image(detector, idx=0):
+def yield_seq_beam_image(detector, images, idx=0):
     while True:
-        val = idx % len(beam_images)
-        yield beam_images[val].astype(np.uint8)
+        val = idx % len(images)
+        yield images[val].astype(np.uint8)
         idx += 1        
 
 def _next_image(det, gen):
@@ -83,7 +85,7 @@ def _next_image(det, gen):
 def sim_det_01():
     det = SimDetector("PSB:SIM:01")
     # Spoof image
-    yield_image = yield_seq_beam_image(det, idx=0)
+    yield_image = yield_seq_beam_image(det, beam_images, idx=0)
     det.image._image = lambda : _next_image(det, yield_image)
     return det
 
@@ -91,7 +93,24 @@ def sim_det_01():
 def sim_det_02():
     det = SimDetector("PSB:SIM:02")
     # Spoof image
-    yield_image = yield_seq_beam_image(det, idx=0)
+    yield_image = yield_seq_beam_image(det, beam_images, idx=0)
     det.image._image = lambda : _next_image(det, yield_image)
     return det
+
+@pytest.fixture(scope='function')
+def sim_hx2():
+    det = SimDetector("PSB:SIM:HX2")
+    # Spoof image
+    yield_image = yield_seq_beam_image(det, images_hx2, idx=0)
+    det.image._image = lambda : _next_image(det, yield_image)
+    return det
+
+@pytest.fixture(scope='function')
+def sim_dg3():
+    det = SimDetector("PSB:SIM:DG3")
+    # Spoof image
+    yield_image = yield_seq_beam_image(det, images_dg3, idx=0)
+    det.image._image = lambda : _next_image(det, yield_image)
+    return det
+
 
