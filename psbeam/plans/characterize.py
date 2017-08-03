@@ -51,6 +51,31 @@ stat_list = ["raw_sum_mn",          # Mean of the sum of raw image
              "match_mn",            # Mean beam similarity score
              "match_std"]           # Std beam similarity score
 
+def signal_tuple(signal, remove_zero=True, raise_zero=True, cast=int):
+    """
+    Returns a tuple from the return value of the signal.
+    """
+    tup = [cast(val) for val in signal.get()]
+    
+    # Check the tuple isn't all zeros if raise_zero is true
+    if raise_zero and all(val == 0 for val in tup):
+        raise ValueError("Invalid tuple. Ensure callbacks are on.")
+    
+    # Remove the trailing zeros if remove_zero is true
+    if remove_zero:
+        idx = 1
+        while True:
+            if tup[-idx] != 0:
+                tup = tup[:-idx+1]
+                break
+            idx += 1
+
+    # Make sure a vector wasn't passed
+    if raise_zero and 0 in tup:
+        raise ValueError("Invalid tuple value. Contains 0 for value that isn't "
+                         "trailing.")
+    return tup
+
 def to_image(array, size_signal=None, shape=None,
              uint_mode="clip"):
     """
@@ -58,24 +83,11 @@ def to_image(array, size_signal=None, shape=None,
     """
     # Check that we can get an image shape
     if size_signal:
-        shape = [int(val) for val in size_signal.get()]
+        shape = signal_tuple(size_signal)
     elif not shape:
         raise InputError("Must input either a signal or expected array shape "
                          "to convert array to an image.")
-    
-    # Check the shape isn't all zeros
-    if all(val == 0 for val in shape):
-        raise ValueError("Invalid image shape. Ensure array_callbacks are on.")
-    
-    # Remove the color dim if grayscale
-    if shape[-1] == 0:
-        shape = shape[:-1]
-
-    # Make sure a vector wasn't passed
-    if 0 in shape:
-        raise ValueError("Invalid image shape. Contains 0 for dim that isn't "
-                         "color space.")
-    
+        
     return to_uint8(array.reshape(shape), mode=uint_mode)
 
 def process_image(image, resize=1.0, kernel=(13,13), uint_mode="scale",
