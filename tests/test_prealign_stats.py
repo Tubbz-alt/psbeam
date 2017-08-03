@@ -26,7 +26,7 @@ from pswalker.plans import measure
 from .utils import collector
 from .conftest import beam_images
 from psbeam.plans.characterize import (process_image, process_det_data,
-                                       characterize_beam)
+                                       characterize)
 from psbeam.beamdetector import detect
 from psbeam.beamexceptions import (NoBeamDetected, NoContoursDetected)
 from psbeam.filters import contour_area_filter
@@ -142,22 +142,21 @@ def test_process_det_data_returns_correct_detector_dict(sim_det_01, RE):
 
     # A test plan that reads the data 10 times and process the data
     def test_plan(det):
-        read_data = yield from measure(det, num=10)
-        image_signals = [d.image.array_data for d in det] 
-        det_sizes = [list(int(val) for val in d.image.array_size.get())
-                     for d in det]
-        proc_dict = process_det_data(read_data, image_signals, det_sizes,
+        read_data = yield from measure([det], num=10)
+        array_signal = det.image.array_data 
+        size_signal = det.image.array_size
+        
+        proc_dict = process_det_data(read_data, array_signal, size_signal,
                                      kernel=kernel, resize=resize,
                                      uint_mode=uint_mode,
                                      thresh_mode=thresh_mode)
-        for d in image_signals:
-            assert(len(proc_dict[d.name]) == 20)
+        assert(len(proc_dict) == 20)
         
     # Run the plan
-    RE(run_wrapper(test_plan([det_01])),
+    RE(run_wrapper(test_plan(det_01)),
        subs={'event':[col_count, col_images]})
 
-def test_characterize_beam_returns_correct_detector_dict(sim_det_01, RE):
+def test_characterize_returns_correct_detector_dict(sim_det_01, RE):
     resize = 1.0
     kernel = (9,9)
     uint_mode = "scale"
@@ -165,6 +164,8 @@ def test_characterize_beam_returns_correct_detector_dict(sim_det_01, RE):
     thresh_factor = 3
     min_area = 100
     det_01 = sim_det_01
+    array_str = "image.array_data"
+    size_str = "image.array_size"
 
     # Fake event storage
     array_data = []
@@ -174,13 +175,12 @@ def test_characterize_beam_returns_correct_detector_dict(sim_det_01, RE):
 
     # A test plan that reads the data 10 times and process the data
     def test_plan(det, sig, size):
-        proc_dict = yield from characterize_beam(
-            det, sig, size, num=10, kernel=kernel, resize=resize,
+        proc_dict = yield from characterize(
+            det, array_str, size_str, num=10, kernel=kernel, resize=resize,
             uint_mode=uint_mode, min_area=min_area, thresh_factor=thresh_factor)
-        for d in det:
-            assert(len(proc_dict[getattr(d, sig).name]) == 20)
+        assert(len(proc_dict) == 20)
         
     # Run the plan
-    RE(run_wrapper(test_plan([det_01], "image.array_data", "image.array_size")),
+    RE(run_wrapper(test_plan(det_01, "image.array_data", "image.array_size")),
        subs={'event':[col_count, col_images]})
     
