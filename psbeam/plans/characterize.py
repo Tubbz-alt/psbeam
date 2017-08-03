@@ -51,28 +51,32 @@ stat_list = ["raw_sum_mn",          # Mean of the sum of raw image
              "match_mn",            # Mean beam similarity score
              "match_std"]           # Std beam similarity score
 
-def to_image(array, detectors=[], size_signal=None, shape=None):
+def to_image(array, size_signal=None, shape=None,
+             uint_mode="clip"):
     """
     Tries to convert the inputted array into an image format.
     """
     # Check that we can get an image shape
-    if size_signal and detectors:
-        sizes = [list(int(val) for val in getattr(det, size_signal).get())
-             for det in detectors]
-        if not all(size == sizes[0] for size in sizes):
-            raise InputError("Multiple sizes found for detectors")
-        shape = sizes[0]
+    if size_signal:
+        shape = [int(val) for val in size_signal.get()]
     elif not shape:
-        raise InputError("Must input either a signal and detector or expected "
-                         "array shape.")
+        raise InputError("Must input either a signal or expected array shape "
+                         "to convert array to an image.")
     
-    # Check the shape value
+    # Check the shape isn't all zeros
     if all(val == 0 for val in shape):
-        raise ValueError('Invalid image shape; ensure array_callbacks are on')
+        raise ValueError("Invalid image shape. Ensure array_callbacks are on.")
+    
+    # Remove the color dim if grayscale
     if shape[-1] == 0:
         shape = shape[:-1]
+
+    # Make sure a vector wasn't passed
+    if 0 in shape:
+        raise ValueError("Invalid image shape. Contains 0 for dim that isn't "
+                         "color space.")
     
-    return to_uint8(array.reshape(shape), mode="clip")
+    return to_uint8(array.reshape(shape), mode=uint_mode)
 
 def process_image(image, resize=1.0, kernel=(13,13), uint_mode="scale",
                   thresh_mode="otsu", thresh_factor=3):
@@ -129,63 +133,58 @@ def process_image(image, resize=1.0, kernel=(13,13), uint_mode="scale",
     return np.array([sum_raw, sum_prep, mean_raw, mean_prep, area, centroid_x,
                      centroid_y, l, w, match])
 
-def process_det_data(data, detectors, det_sizes, kernel=(13,13), uint_mode="scale",
-                     thresh_mode="otsu", thresh_factor=3, resize=1.0):
+def process_det_data(data, detector, size_signal, kernel=(13,13),
+                     uint_mode="scale", thresh_mode="otsu", thresh_factor=3,
+                     resize=1.0):
     """
     Processes each image in the dict and returns another dict with the
     processed data.
     """
-    result = dict()
-    # image_data = {det.name : np.zeros((len(data), 10)) for det in detectors}
-    for size, det in zip(det_sizes, detectors):
-        stats_array = np.zeros((len(data), 10))
-        for i, d in enumerate(data):
-            # Array of processed image data for each shot in a dict for each det
-            stats_array[i,:] = process_image(
-                to_image(d[det.name], shape=size), kernel=kernel,
-                resize=resize, uint_mode=uint_mode, thresh_mode=thresh_mode)
+    stats_array = np.zeros((len(data), 10))
+    for i, d in enumerate(data):
+        # Array of processed image data for each shot in a dict for each det
+        stats_array[i,:] = process_image(
+            to_image(d[detector.name], size_signal=size_signal), kernel=kernel,
+            resize=resize, uint_mode=uint_mode, thresh_mode=thresh_mode)
 
-        # Remove any rows that have -1 as a value
-        stats_array_dropped = np.delete(stats_array, np.unique(np.where(
-            stats_array == -1)[0]), axis=0)
+    # Remove any rows that have -1 as a value
+    stats_array_dropped = np.delete(stats_array, np.unique(np.where(
+        stats_array == -1)[0]), axis=0)
 
-        # Turn the data into a mean and std for each entry                
-        results_dict = dict()
-        for i in range(stats_array_dropped.shape[1]):
-            results_dict[stat_list[2*i]] = stats_array_dropped[:,i].mean()
-            results_dict[stat_list[2*i+1]] = stats_array_dropped[:,i].std()
-
-        # Key the array by det name
-        result[det.name] = results_dict
+    # Turn the data into a mean and std for each entry                
+    results_dict = dict()
+    for i in range(stats_array_dropped.shape[1]):
+        results_dict[stat_list[2*i]] = stats_array_dropped[:,i].mean()
+        results_dict[stat_list[2*i+1]] = stats_array_dropped[:,i].std()
         
-    return result
+    return results_dict
 
-def characterize_beam(detectors, image_signal, size_signal, num=10,
-                      filters=None, delay=None, drop_missing=True, kernel=(9,9),
-                      resize=1.0, uint_mode="scale", min_area=100,
-                      thresh_factor=3, filter_kernel=(9,9), thresh_mode="otsu",
-                      **kwargs):
+def characterize(detector, array_signal_str, size_signal_str, num=10,
+                 filters=None, delay=None, drop_missing=True, kernel=(9,9),
+                 resize=1.0, uint_mode="scale", min_area=100,
+                 thresh_factor=3, filter_kernel=(9,9), thresh_mode="otsu",
+                 **kwargs):
     """
     Returns a dictionary containing all the relevant statistics of the beam.
     """
+    # Get the image and size signals
+    array_signal = getattr(detector, array_signal_str)    
+    size_signal = getattr(detector, size_signal_str)
+    
     # Apply the default filter
     if filters is None:
         filters = dict()
-    for det in detectors:
-        array_str = det.name + "_" + image_signal.replace(".", "_")
-        filters[array_str] = lambda image : contour_area_filter(
-            to_image(image, detectors, size_signal))
-    # Get the image signals
-    image_signals = [getattr(det, image_signal) for det in detectors]
-    det_sizes = [list(int(val) for val in getattr(det, size_signal).get())
-                   for det in detectors]
+    array_signal_str_full = detector.name + "_" + array_signal_str.replace(
+        ".", "_")
+    filters[array_signal_str_full] = lambda image : contour_area_filter(
+        to_image(image, detector, size_signal))
     
     # Get images for all the shots
-    data = yield from measure(image_signals, num=num, delay=delay,
+    data = yield from measure([array_signal], num=num, delay=delay,
                               filters=filters, drop_missing=drop_missing)
     
     # Process the data    
-    results = process_det_data(data, image_signals, det_sizes, kernel=kernel,
+    results = process_det_data(data, array_signal, size_signal, kernel=kernel,
                                uint_mode=uint_mode, thresh_mode=thresh_mode,
                                thresh_factor=thresh_factor, resize=resize)
                                     
