@@ -51,14 +51,14 @@ def test_contour_area_filter_correctly_filters_beam_images():
             assert(image_passes == True)
 
 def test_contour_area_filter_works_on_dg3_images():
-    for i, (key, img) in enumerate(images_dg3.items()):
+    for key, img in images_dg3.items():
         image_passes = contour_area_filter(img, kernel=(19,19), factor=4)
-        assert(image_passes == bool(i) and True)
+        assert(image_passes == bool(int(key[-3:])) and True)
 
 def test_contour_area_filter_works_on_hx2_images():
-    for i, (key, img) in enumerate(images_hx2.items()):
+    for key, img in images_hx2.items():
         image_passes = contour_area_filter(img, kernel=(19,19), factor=2)
-        assert(image_passes == bool(i) and True)             
+        assert(image_passes == bool(int(key[-3:])) and True)             
 
 # full_filter
 
@@ -105,23 +105,23 @@ def test_full_filter_returns_true_correctly():
             assert(image_passes == True)
 
 def test_full_filter_works_on_hx2_images():
-    for i, (key, img) in enumerate(images_hx2.items()):
+    for key, img in images_hx2.items():
         try:
             cent, _ = detect(img, kernel=(9,9))
         except NoBeamDetected:
             cent = (0,0)
         image_passes = full_filter(img, cent, kernel=(9,9), n_opening=3,
                                    thresh_similarity=0.1, cent_atol=3)        
-        assert(image_passes == bool(i) and True)             
+        assert(image_passes == bool(int(key[-3:])) and True)             
             
 def test_full_filter_works_on_dg3_images():
-    for i, (key, img) in enumerate(images_dg3.items()):
+    for key, img in images_dg3.items():
         try:
             cent, _ = detect(img, kernel=(9,9))
         except NoBeamDetected:
             cent = (0,0)
         image_passes = full_filter(img, cent, kernel=(9,9), n_opening=3,
-                                   thresh_similarity=0.1, cent_atol=3)        
-        assert(image_passes == bool(i) and True)
+                                   thresh_similarity=0.1, cent_atol=3)
+        assert(image_passes == bool(int(key[-3:])) and True)
             
 
