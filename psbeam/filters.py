@@ -34,7 +34,7 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
     Parameters
     ----------
     image : np.ndarray
-    	Image to check for contours
+    	Image to check for contours.
 
     kernel : tuple, optional
     	Kernel to use when gaussian blurring.
@@ -43,7 +43,7 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
     	How much to resize the image by before doing any calculations.
 
     uint_mode : str, optional
-    	Conversion mode to use when converting to uint8
+    	Conversion mode to use when converting to uint8.
 
     min_area : float, optional
     	Minimum area of the otsu thresholded beam.

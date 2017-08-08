@@ -53,7 +53,7 @@ stat_list = ["sum_mn_raw",          # Mean of the sum of raw image
 def process_image(image, resize=1.0, kernel=(13,13), uint_mode="scale",
                   thresh_mode="otsu", thresh_factor=3):
     """
-    Processes the input image and returns an array of numbers charcterizing the
+    Processes the input image and returns a vector of numbers charcterizing the
     beam.
 
     Parameters
@@ -67,7 +67,17 @@ def process_image(image, resize=1.0, kernel=(13,13), uint_mode="scale",
     kernel : tuple, optional
         Size of kernel to use when running the gaussian filter.
 
-    factor : int, float
+    uint_mode : str, optional
+    	Conversion mode to use when converting to uint8. For extended
+    	documentation, see preprocessing.to_uint8. Valid modes are:
+    		['clip', 'norm', 'scale']
+
+    thresh_mode : str, optional
+    	Thresholding mode to use. For extended documentation see
+    	preprocessing.threshold_image. Valid modes are:
+    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+
+    thresh_factor : int, float
     	Factor to pass to the mean threshold.
 
     Returns
@@ -105,20 +115,62 @@ def process_image(image, resize=1.0, kernel=(13,13), uint_mode="scale",
     return np.array([sum_raw, sum_prep, mean_raw, mean_prep, area, centroid_x,
                      centroid_y, l, w, match])
 
-def process_det_data(data, detector, size_signal, kernel=(13,13),
+def process_det_data(data, array_signal, size_signal, resize=1.0, kernel=(13,13),
                      uint_mode="scale", thresh_mode="otsu", thresh_factor=3,
-                     resize=1.0, md=None, **kwargs):
+                     md=None, **kwargs):
     """
-    Processes each image in the dict and returns another dict with the
-    processed data.
+    Processes each image in the inputted event docs and returns another dict
+    with the beam statistics calculated for all the events.
+
+    Parameters
+    ----------
+    data : list
+    	The list of event doc dicts that contain the array_data to be processed.
+
+    array_signal : ophyd.signal.Signal
+    	Signal that emitted the array data we will be processing.
+
+    size_signal : ophyd.signal.Signal
+    	Detector signal that returns the expected size of the array.
+
+    resize : float, optional
+        Resize the image before performing any processing.
+
+    kernel : tuple, optional
+        Size of kernel to use when running the gaussian filter.
+
+    uint_mode : str, optional
+    	Conversion mode to use when converting to uint8. For extended
+    	documentation, see preprocessing.to_uint8. Valid modes are:
+    		['clip', 'norm', 'scale']
+
+    thresh_mode : str, optional
+    	Thresholding mode to use. For extended documentation see
+    	preprocessing.threshold_image. Valid modes are:
+    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+
+    thresh_factor : int or float, optional
+    	Factor to pass to the mean threshold.
+
+    md : str, optional
+    	How much meta data to include in the output dict. Valid options are:
+    		[None, 'basic', 'all']
+    	Note: The 'all' option is for debugging purposes and should not be used
+    	in production.
+
+    Returns
+    -------
+    results_dict : dict
+    	Dictionary containing the statistics obtained from the array data, and
+    	optionally some meta-data.
     """
     stats_array = np.zeros((len(data), 10))
-    for i, d in enumerate(data):
+    for i, event in enumerate(data):
         # Array of processed image data for each shot in a dict for each det
         stats_array[i,:] = process_image(
-            to_image(d[detector.name], size_signal=size_signal), kernel=kernel,
-            resize=resize, uint_mode=uint_mode, thresh_mode=thresh_mode,
-            **kwargs)
+            to_image(event[array_signal.name], size_signal=size_signal),
+            kernel=kernel, resize=resize, uint_mode=uint_mode,
+            thresh_mode=thresh_mode, **kwargs)
 
     # Remove any rows that have -1 as a value
     stats_array_dropped = np.delete(stats_array, np.unique(np.where(
@@ -156,12 +208,158 @@ def process_det_data(data, detector, size_signal, kernel=(13,13),
     return results_dict
 
 def characterize(detector, array_signal_str, size_signal_str, num=10,
-                 filters=None, delay=None, drop_missing=True, kernel=(9,9),
-                 resize=1.0, uint_mode="scale", min_area=100, md=None,
-                 thresh_factor=3, filter_kernel=(9,9), thresh_mode="otsu",
+                 delay=None, filters=None, drop_missing=True, 
+                 filter_kernel=(9,9), resize=1.0, uint_mode="scale",
+                 min_area=100, filter_factor=(9,9), min_area_factor=3,
+                 kernel=(9,9), thresh_factor=3, thresh_mode="otsu", md=None,
                  **kwargs):
     """
-    Returns a dictionary containing all the relevant statistics of the beam.
+    Characterizes the beam profile by computing various metrics and statistics
+    of the beam using the inputted detector. The function performs 'num' reads
+    on the array_data field of the detector, optionally filtering shots until
+    'num' shots have been collected, and then runs the processing pipeline on
+    each of the resulting arrays.
+
+    The processing pipeline computes the contours of the image, from which the
+    area, length, width, centroid and circularity of the contour is computed.
+    Additionally, the sum and mean intensity values are computed of both the
+    preprocessed image and the raw image.
+
+    Once the pipeline has been finished processing for all 'num' images, the
+    mean and standard deviation of each statistic is computed, giving a total
+    20 entries to the stats dictionary.
+
+    Computed Statistics
+    -------------------
+    sum_mn_raw
+    	Mean of the sum of the raw image intensities.
+    
+    sum_std_raw
+    	Standard deviation of sum of the raw image pixel intensities.
+    
+    sum_mn_prep
+    	Mean of the sum of the preprocessed image pixel intensities. 
+    
+    sum_std_prep
+    	Standard deviation of the sum of the preprocessed image pixel
+    	intensities.
+    
+    mean_mn_raw
+    	Mean of the mean of the raw image pixel intensities.
+    
+    mean_std_raw
+    	Standard deviation of the mean of the raw image pixel intensities.
+    
+    mean_mn_prep
+    	Mean of the mean of the preprocessed image pixel intensities.
+    
+    mean_std_prep
+    	Standard deviation of the mean of the preprocessed image pixel
+    	intensities.
+    
+    area_mn
+    	Mean of the area of the contour of the beam.
+    
+    area_std
+    	Standard deviation of area of the contour of the beam.
+    
+    centroid_x_mn
+    	Mean of the contour centroid x.
+    
+    centroid_x_std
+    	Standard deviation of the contour centroid x.
+    
+    centroid_y_mn
+    	Mean of the contour centroid y.
+    
+    centroid_y_std
+    	Standard deviation of the contour centroid y.
+    
+    length_mn
+    	Mean of the contour length.
+    
+    length_std
+    	Standard deviation of the contour length.
+    
+    width_mn
+    	Mean of the contour width.
+    
+    width_std
+    	Standard deviation of the contour width.
+    
+    match_mn
+    	Mean score of contour similarity to a binary image of a circle.
+    
+    match_std
+    	Standard deviation of score of contour similarity to a binary image of
+    	a circle.
+
+    Parameters
+    ----------
+    detector : detector obj
+    	Detector object that contains the components for the array data and
+    	image shape data.
+
+    array_signal_str : str
+    	The string name of the array_data signal.
+
+    size_signal_str : str
+    	The string name of the signal that will provide the shape of the image.
+    
+    num : int
+        Number of measurements that need to pass the filters.
+
+    delay : float
+        Minimum time between consecutive reads of the detectors.
+
+    filters : dict, optional
+        Key, callable pairs of event keys and single input functions that
+        evaluate to True or False. 
+
+    drop_missing : bool, optional
+        Choice to include events where event keys are missing.
+
+    filter_kernel : tuple, optional
+    	Kernel to use when gaussian blurring in the contour filter.
+
+    resize : float, optional
+    	How much to resize the image by before doing any calculations.
+
+    uint_mode : str, optional
+    	Conversion mode to use when converting to uint8.
+
+    min_area : float, optional
+    	Minimum area of the otsu thresholded beam.
+
+    filter_factor : float
+    	Factor to pass to the filter mean threshold.
+
+    min_area_factor : float
+    	The amount to scale down the area for comparison with the mean threshold
+    	contour area.
+    
+    kernel : tuple, optional
+        Size of kernel to use when running the gaussian filter.    
+
+    thresh_mode : str, optional
+    	Thresholding mode to use. For extended documentation see
+    	preprocessing.threshold_image. Valid modes are:
+    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+
+    thresh_factor : int or float, optional
+    	Factor to pass to the mean threshold.
+
+    md : str, optional
+    	How much meta data to include in the output dict. Valid options are:
+    		[None, 'basic', 'all']
+    	Note: The 'all' option is for debugging purposes and should not be used
+    	in production.
+
+    Returns
+    -------
+    results_dict : dict
+    	Dictionary containing the statistics obtained from the array data, and
+    	optionally some meta-data.    
     """   
     # Get the image and size signals
     array_signal = getattr(detector, array_signal_str)
@@ -173,7 +371,9 @@ def characterize(detector, array_signal_str, size_signal_str, num=10,
     array_signal_str_full = detector.name + "_" + array_signal_str.replace(
         ".", "_")
     filters[array_signal_str_full] = lambda image : contour_area_filter(
-        to_image(image, detector, size_signal))
+        to_image(image, detector, size_signal), kernel=filter_kernel,
+        min_area=min_area, min_area_factor=min_area_factor,
+        factor=filter_factor, uint_mode=uint_mode)
     
     # Get images for all the shots
     data = yield from measure([array_signal], num=num, delay=delay,
