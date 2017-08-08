@@ -1,3 +1,6 @@
+# Ignore log directory
+logs/*
+
 # Ignore the cache dir
 cache/*
 
