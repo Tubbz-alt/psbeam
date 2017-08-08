@@ -2,18 +2,10 @@ doc-warnings: true
 test-warnings: false
 strictness: medium
 max-line-length: 80
-uses:
-  - django
-  - celery
-  - flask
 autodetect: true
 ignore-paths:
   - docs
   - logs
   - notebooks
-ignore-patterns:
-  - *.egg-info*
-  - ~*
-  - *~
 python-targets:
   - 3
