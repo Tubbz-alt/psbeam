@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
@@ -52,7 +53,7 @@ def get_opening(image, n_erode=1, n_dilate=1, kernel=(5,5)):
     Raises
     ------
     InputError
-    	When image passed is not a binary image
+        When image passed is not a binary image
     """
     # Check that image is binary
     if len(np.unique(image)) > 2:
@@ -90,7 +91,7 @@ def get_closing(image, n_erode=1, n_dilate=1, kernel=(5,5)):
     Raises
     ------
     InputError
-    	When image passed is not a binary image
+        When image passed is not a binary image
     """
     if len(np.unique(image)) > 2:
         raise InputError("Binary image is required for morphological "

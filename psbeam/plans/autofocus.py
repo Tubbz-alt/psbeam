@@ -65,13 +65,13 @@ class Focus(Hooks):
         if self.method == "scan":
             assert isiterable(self.positions)
         assert isiterable(self.motor_pv) or isinstance(
-            self.motor_pv, (basestring, Motor, VirtualMotor))
-        if isinstance(self.motor_pv, (basestring, Motor)):
+            self.motor_pv, (str, Motor, VirtualMotor))
+        if isinstance(self.motor_pv, (str, Motor)):
             assert len(self.positions) == 3
         elif isiterable(self.motor_pv):
             assert len(self.positions) == len(self.motor_pv)
             for pv, pos in zip(self.motor_pv, self.positions):
-                assert isinstance(pv, basestring)
+                assert isinstance(pv, str)
                 assert isiterable(pos)
                 assert len(pos) == 3
         elif isinstance(self.motor_pv, VirtualMotor): 
@@ -85,7 +85,7 @@ class Focus(Hooks):
                     assert len(self.positions) == 3
                     assert self.motor_pv.num_motors == 1
 
-        assert isinstance(self.camera_pv, (VirtualCamera, basestring))
+        assert isinstance(self.camera_pv, (VirtualCamera, str))
         assert self.resize > 0
         assert isinstance(self.kernel, tuple)
         assert len(self.kernel) == 2
@@ -99,7 +99,7 @@ class Focus(Hooks):
         motors = []
         if isinstance(self.motor_pv, (Motor, VirtualMotor)):
             return self.motor_pv
-        elif isinstance(self.motor_pv, basestring):
+        elif isinstance(self.motor_pv, str):
             return Motor(self.motor_pv, name=pv.get(self.motor_pv+".DESC"))
         elif isiterable(self.motor_pv):
             return VirtualMotor(self.motor_pv)
@@ -120,7 +120,7 @@ class Focus(Hooks):
     def _get_camera_obj(self):
         if isinstance(self.camera_pv, VirtualCamera):
             return self.camera_pv
-        elif isinstance(self.camera_pv, basestring):
+        elif isinstance(self.camera_pv, str):
             return VirtualCamera(self.camera_pv)
         else:
             raise TypeError
@@ -274,7 +274,7 @@ def isiterable(obj):
     Function that determines if an object is an iterable, but not including 
     strings.
     """
-    if isinstance(obj, basestring):
+    if isinstance(obj, str):
         return False
     else:
         return isinstance(obj, Iterable)

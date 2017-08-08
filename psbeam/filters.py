@@ -34,31 +34,31 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
     Parameters
     ----------
     image : np.ndarray
-    	Image to check for contours.
+        Image to check for contours.
 
     kernel : tuple, optional
-    	Kernel to use when gaussian blurring.
+        Kernel to use when gaussian blurring.
 
     resize : float, optional
-    	How much to resize the image by before doing any calculations.
+        How much to resize the image by before doing any calculations.
 
     uint_mode : str, optional
-    	Conversion mode to use when converting to uint8.
+        Conversion mode to use when converting to uint8.
 
     min_area : float, optional
-    	Minimum area of the otsu thresholded beam.
+        Minimum area of the otsu thresholded beam.
 
     factor : float
-    	Factor to pass to the mean threshold.
+        Factor to pass to the mean threshold.
 
     min_area_factor : float
-    	The amount to scale down the area for comparison with the mean threshold
-    	contour area.
+        The amount to scale down the area for comparison with the mean threshold
+        contour area.
 
     Returns
     -------
     passes : bool
-    	True if the image passes the check, False if it does not
+        True if the image passes the check, False if it does not
     """
     image_prep = uint_resize_gauss(image, mode=uint_mode, kernel=kernel,
                                    fx=resize, fy=resize)
@@ -122,9 +122,9 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
         Upper threshold for beam similarity score (0.0 is perfectly circular).
 
     thresh_mode : str, optional
-    	Thresholding mode to use. For extended documentation see
-    	preprocessing.threshold_image. Valid modes are:
-    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+        Thresholding mode to use. For extended documentation see
+        preprocessing.threshold_image. Valid modes are:
+            ['mean', 'top', 'bottom', 'adaptive', 'otsu']
 
     Returns
     -------
@@ -189,29 +189,29 @@ def moments_within_range(M=None, image=None, contour=None, max_m0=10e5,
     Parameters
     ----------
     M : dict, optional 
-    	Moments of the image.
+        Moments of the image.
     
     image : np.ndarray, optional
-    	Image to check the moments for.
+        Image to check the moments for.
     
     contour : np.ndarray, optional
-    	Beam contours
+        Beam contours
 
     max_m0 : float, optional
-    	Maximum value that the zeroth moment can have
+        Maximum value that the zeroth moment can have
 
     min_m0 : float, optional
-    	Minimum value that the zeroth moment can have
+        Minimum value that the zeroth moment can have
 
     Returns
     -------
     within_range : bool
-    	Whether the moments were within the specified range.
+        Whether the moments were within the specified range.
 
     Raises
     ------
     MomentOutOfRange
-    	If the zeroth moment is out of the specified range.
+        If the zeroth moment is out of the specified range.
     """    
     try:
         if not min_m0 <= M['m00'] <= max_m0:

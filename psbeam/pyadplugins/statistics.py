@@ -31,9 +31,8 @@ logger = logging.getLogger(__name__)
 
 def contouring_pipeline(array, height=None, width=None, resize=1.0, 
                         kernel=(11,11), prefix="", suffix="", save=0.2, 
-                        description="", 
-                        json_path=None, save_image=None, image_dir=None,
-                        threshold_factor=2):
+                        description="", json_path=None, save_image=None,
+                        image_dir=None, threshold_factor=2):
     """
     Runs a pipeline that returns:
         - DESC - Description of the plugin
@@ -64,7 +63,7 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
         centroid = [pos//resize for pos in get_centroid(M)]
         l, w = [val//resize for val in get_contour_size(
             contour, factor=threshold_factor)]
-        match = get_similarity(contours)
+        match = get_similarity(contour)
         beam_present = True
 
     # No beam on Image, set values to make this clear
@@ -95,7 +94,7 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
     if json_path is not None:
         if not json_path.exists():
             json_path.touch()
-        with file_path.open(mode='a') as json:
+        with json_path.open(mode='a') as json:
             sjson.dump(output, json, indent=4)
     
     # Save the image if save_image and a path is passed

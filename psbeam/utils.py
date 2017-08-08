@@ -8,6 +8,7 @@ import os
 import random
 import logging
 from pathlib import Path
+from collections.abc import Iterable
 
 ###############
 # Third Party #
@@ -20,6 +21,7 @@ import matplotlib.pyplot as plt
 # Module #
 ##########
 from .preprocessing import to_uint8
+from .beamexceptions import InputError
 
 logger = logging.getLogger(__name__)
 

@@ -8,6 +8,7 @@
 ############
 import os
 import logging
+from pathlib import Path
 
 ###############
 # Third Party #
@@ -89,7 +90,7 @@ def contouring_plugin(ad_prefix, plugin_prefix="", plugin_suffix="",
     try:
         # Set up the server
         pyad_server = ADPluginServer(
-            prefix = prefix,
+            prefix = plugin_prefix,
             ad_prefix = ad_prefix,
             stream = stream,
             min_cbtime = min_cbtime,

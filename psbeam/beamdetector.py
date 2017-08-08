@@ -31,42 +31,42 @@ def detect(image, resize=1.0, kernel=(9,9), thresh_mode="otsu",
     Parameters
     ----------
     image : np.ndarray
-    	Image to detect the beam on
+        Image to detect the beam on
     
     resize : float, optional
-    	Resize factor (1.0 keeps image same size).
+        Resize factor (1.0 keeps image same size).
     
     kernel : tuple, optional
-    	Tuple of length 2 for gaussian kernel size.
+        Tuple of length 2 for gaussian kernel size.
 
     thresh_mode : str, optional
-    	Thresholding mode to use. For extended documentation see
-    	preprocessing.threshold_image. Valid modes are:
-    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+        Thresholding mode to use. For extended documentation see
+        preprocessing.threshold_image. Valid modes are:
+            ['mean', 'top', 'bottom', 'adaptive', 'otsu']
 
     uint_mode : str, optional
-    	Conversion mode to use when converting to uint8. Valid modes are:
-    		['clip', 'norm', 'scale']
+        Conversion mode to use when converting to uint8. Valid modes are:
+            ['clip', 'norm', 'scale']
 
     factor : int or float, optional
-    	Factor to pass to the binary threshold.
+        Factor to pass to the binary threshold.
 
     filters : callable or iterable, optional
-    	Beam filters that are run before attempting to find the centroids and
-    	bounding box. If the function returns False, NoBeamDetected is raised
+        Beam filters that are run before attempting to find the centroids and
+        bounding box. If the function returns False, NoBeamDetected is raised
     
     Returns
     -------
     tuple
-    	Tuple of centroid and bounding box
+        Tuple of centroid and bounding box
 
     Raises
     ------
     NoBeamDetected
-    	If there was no beam found on the image or if a filter returns False
+        If there was no beam found on the image or if a filter returns False
 
     InputError
-    	If an invalid filter type is passed
+        If an invalid filter type is passed
     """
     # Skip if filters is none
     if filters is None:

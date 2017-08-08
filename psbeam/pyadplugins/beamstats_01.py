@@ -25,16 +25,16 @@ def stats_01(array, height=None, width=None, resize=1.0, kernel=(13,13)):
     desc = "Gauss filter for prep. Use largest contour. Use sum for beam " \
       "presence."
     file_str = Path("{0}.json".format(ad_prefix.replace(":", "_")))
-    return contouring_pipeline(array, height=height, width=width, prefix="PYSTATS:",
-                               suffix=":01", desc=desc, save_image=True,
-                               save_image_path=save_image_path) 
+    return contouring_pipeline(array, height=height, width=width,
+                               prefix="PYSTATS:", suffix=":01",
+                               description=desc, save_image=True) 
 
 def stats_02(array, height=None, width=None, resize=1.0, kernel=(13,13)):
     desc = "Gauss filter then 2 erosions and 2 dilations for prep. Use " \
       "largest contour. No check for beam presence."
-    return contouring_pipeline(array, height=height, width=width, prefix="PYSTATS:",
-                               suffix=":02", desc=desc, save_image=True,
-                               save_image_path=save_image_path) 
+    return contouring_pipeline(array, height=height, width=width,
+                               prefix="PYSTATS:", suffix=":02",
+                               desccription=desc, save_image=True)
 
 # Set up the server
 ad_prefix = 'HX2:SB1:CVV:01:'
