@@ -60,8 +60,8 @@ def stats_01(array, height=None, width=None, resize=1.0, kernel=(13,13)):
         contour = None
         M = None
     res = {"01:AREA": area, "01:BEAM": beam_present, "01:CENT:X": centroid[0], 
-           "01:CENT:Y": centroid[1], "01:LENGTH":l, "01:WIDTH":w, "01:DESC":desc,
-           "01:MATCH":match}
+           "01:CENT:Y": centroid[1], "01:LENGTH":l, "01:WIDTH":w,
+           "01:DESC":desc, "01:MATCH":match}
     extra = {"M":M, "CNT":contour}
     with file_path.open(mode='a') as json:
         sjson.dump({**res, **extra}, json, indent=4)
@@ -100,8 +100,8 @@ def stats_02(array, height=None, width=None, resize=1.0, kernel=(13,13)):
         contour = None
         M = None
     res = {"02:AREA": area, "02:BEAM": beam_present, "02:CENT:X": centroid[0], 
-           "02:CENT:Y": centroid[1], "02:LENGTH":l, "02:WIDTH":w, "02:DESC":desc,
-           "02:MATCH":match}
+           "02:CENT:Y": centroid[1], "02:LENGTH":l, "02:WIDTH":w,
+           "02:DESC":desc, "02:MATCH":match}
     extra = {"M":M, "CNT":contour}
     with file_path.open(mode='a') as json:
         sjson.dump({**res, **extra}, json, indent=4)
@@ -124,13 +124,15 @@ if not file_path.exists():
     file_path.touch()
 
 # Set up the plugins
-stats01 = ADPluginFunction("01", {"01:AREA": 0, "01:BEAM": False, "01:CENT:X": 0, 
-                                "01:CENT:Y": 0, "01:LENGTH":0, "01:WIDTH":0, "01:DESC":"",
-                                "01:MATCH":0}, 
-                         stats_01, server)
-stats02 = ADPluginFunction("02", {"02:AREA": 0, "02:BEAM": False, "02:CENT:X": 0, 
-                                  "02:CENT:Y": 0, "02:LENGTH":0, "02:WIDTH":0, "02:DESC":"",
-                                  "02:MATCH":0}, 
+stats01 = ADPluginFunction("01", {"01:AREA": 0, "01:BEAM": False,
+                                  "01:CENT:X": 0, "01:CENT:Y": 0,
+                                  "01:LENGTH": 0, "01:WIDTH": 0, "01:DESC": "",
+                                  "01:MATCH": 0}, 
+                           stats_01, server)
+stats02 = ADPluginFunction("02", {"02:AREA": 0, "02:BEAM": False,
+                                  "02:CENT:X": 0, "02:CENT:Y": 0,
+                                  "02:LENGTH": 0, "02:WIDTH": 0, "02:DESC": "",
+                                  "02:MATCH": 0}, 
                            stats_02, server)
 
 # import ipdb; ipdb.set_trace()

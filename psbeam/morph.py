@@ -26,6 +26,8 @@ import numpy as np
 ##########
 from psbeam.beamexceptions import InputError
 
+logger = logging.getLogger(__name__)
+
 def get_opening(image, n_erode=1, n_dilate=1, kernel=(5,5)):
     """
     Performs the specified number of erosions, followed by the specified number

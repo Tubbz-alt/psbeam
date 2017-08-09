@@ -95,8 +95,8 @@ def get_largest_contour(image=None, contours=None, thresh_mode="otsu",
         raise InputError("No image or contours provided.")
     elif image is not None:
         if contours is not None:
-            logger.warning("Image and contours inputted. Returning largest contour"
-                        " of the image.")
+            logger.warning("Image and contours inputted. Returning largest "
+                           "contour of the image.")
         contours = get_contours(image, thresh_mode=thresh_mode, **kwargs)
         
     # Get area of all the contours found

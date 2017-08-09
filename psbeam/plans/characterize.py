@@ -4,13 +4,11 @@ OpenCV Bluesky Plans
 ############
 # Standard #
 ############
-import time
 import logging
 
 ###############
 # Third Party #
 ###############
-import cv2
 import numpy as np
 from pswalker.plans import measure
 
@@ -19,7 +17,7 @@ from pswalker.plans import measure
 ##########
 from ..filters import contour_area_filter
 from ..utils import (to_image, signal_tuple)
-from ..beamexceptions import (NoContoursDetected, InputError)
+from ..beamexceptions import NoContoursDetected
 from ..preprocessing import uint_resize_gauss
 from ..contouring import (get_largest_contour, get_moments, get_centroid,
                           get_contour_size, get_similarity)

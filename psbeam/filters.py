@@ -10,7 +10,6 @@ import logging
 ###############
 # Third Party #
 ###############
-import cv2
 import numpy as np
 
 ##########
@@ -65,9 +64,9 @@ def contour_area_filter(image, kernel=(9,9), resize=1.0, uint_mode="scale",
     
     # Try to get contours of the image
     try:
-        contour_mean, area_mean = get_largest_contour(
+        _, area_mean = get_largest_contour(
             image_prep, thresh_mode="mean", factor=factor, **kwargs)        
-        contour_otsu, area_otsu = get_largest_contour(
+        _, area_otsu = get_largest_contour(
             image_prep, thresh_mode="otsu", **kwargs)
         
         # Do the check for area
@@ -142,8 +141,7 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
         image_morph = get_opening(image_thresh, n_erode=n_opening, 
                                   n_dilate=n_opening, kernel=(9,9))
         # Grab the largest contour
-        contour, area = get_largest_contour(image_morph,
-                                            thresh_mode=thresh_mode)
+        contour, _ = get_largest_contour(image_morph, thresh_mode=thresh_mode)
         # Image moments
         M = get_moments(contour=contour)
         # Find a centroid

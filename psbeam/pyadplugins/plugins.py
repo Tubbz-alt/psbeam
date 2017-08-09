@@ -13,9 +13,7 @@ from pathlib import Path
 ###############
 # Third Party #
 ###############
-import cv2
 import numpy as np
-import simplejson as sjson
 from pyadplugin import ADPluginServer, ADPluginFunction
 
 ##########
@@ -69,7 +67,7 @@ def contouring_plugin(ad_prefix, plugin_prefix="", plugin_suffix="",
             array, height=height, width=width, resize=resize, kernel=kernel,
             prefix=plugin_prefix, suffix=plugin_suffix, save=save_frequency,
             description=description, json_path=json_path, save_image=save_image,
-            image_dir=image_dir, thresh_factor=threshold_factor)
+            image_dir=image_dir, threshold_factor=threshold_factor)
 
     # Define the default values for the pv dictionary
     output_dict = {

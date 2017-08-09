@@ -21,7 +21,6 @@ import simplejson as sjson
 ##########
 # Module #
 ##########
-from ..morph import get_opening
 from ..preprocessing import uint_resize_gauss
 from ..beamexceptions import NoContoursDetected
 from ..contouring import (get_largest_contour, get_moments, get_centroid,
@@ -99,8 +98,8 @@ def contouring_pipeline(array, height=None, width=None, resize=1.0,
     
     # Save the image if save_image and a path is passed
     if save_image is not None and image_dir is not None:
-        # Save at random according to save_image
-        if np.random.uniform < save_image:
+        # Save at random according to save
+        if np.random.uniform < save:
             # Create the save name for the image
             save_image_path = image_dir / "{0}_image_{1}.png".format(
                 prefix, datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))

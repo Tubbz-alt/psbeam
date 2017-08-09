@@ -33,23 +33,23 @@ def to_gray(image, color_space="RGB", cv2_color=None):
     Parameters
     ----------
     image : np.ndarray
-    	Image to convert to grayscale.
+        Image to convert to grayscale.
 
     color_space : str, optional
-    	Color space of the image. Valid entries are 'RGB', 'BGR'.
+        Color space of the image. Valid entries are 'RGB', 'BGR'.
 
     cv2_color : cv2.ColorConversionCodes
-    	OpenCV color conversion code. Bypasses image array checks if used.
+        OpenCV color conversion code. Bypasses image array checks if used.
 
     Returns
     -------
     image_gray : np.ndarray
-    	The image converted to gray scale (ie len(image.shape) is 2)
+        The image converted to gray scale (ie len(image.shape) is 2)
 
     Raises
     ------
     InputError
-    	If input is not an image or color_space is invalid.
+        If input is not an image or color_space is invalid.
     """
     # Check if an OpenCV color conversion was entered
     if cv2_color is not None:
@@ -89,16 +89,16 @@ def to_uint8(image, mode="scale"):
     Conversion Modes
     ----------------
     clip
-    	Truncates the  image at 0 and 255, then returns the resulting array.
+        Truncates the  image at 0 and 255, then returns the resulting array.
 
     norm
-    	Normalizes the image so that the maximum value of the input array is set
-    	to 255 and the minimum value is 0.
+        Normalizes the image so that the maximum value of the input array is set
+        to 255 and the minimum value is 0.
     
     scale
-    	Scales the image so that the maximum and minimum values of the resulting
-    	array corresponds to the maximum and minimum possible values of the
-    	input array.
+        Scales the image so that the maximum and minimum values of the resulting
+        array corresponds to the maximum and minimum possible values of the
+        input array.
 
     Parameters
     ----------
@@ -155,8 +155,8 @@ def to_uint8(image, mode="scale"):
 
     # Warn the user if the preprocessing resulted in a zeroed array
     if not output.any() and image_array.any():
-        logger.warning("to_uint8 resulted in a fully zeroed array from non-zero "
-                    "input.")
+        logger.warning("to_uint8 resulted in a fully zeroed array from "
+                       "non-zero input.")
 
     # Return casting as uint8
     return output.astype(np.uint8)

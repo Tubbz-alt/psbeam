@@ -22,6 +22,8 @@ from .beamexceptions import (NoContoursDetected, NoBeamDetected, InputError)
 from .contouring import (get_largest_contour, get_moments, get_bounding_box, 
                          get_centroid)
 
+logger = logging.getLogger(__name__)
+
 def detect(image, resize=1.0, kernel=(9,9), thresh_mode="otsu",
            uint_mode="scale", thresh_factor=1, filters=None, **kwargs):
     """

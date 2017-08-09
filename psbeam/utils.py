@@ -4,7 +4,6 @@ Helper Functions for PSBeam
 ############
 # Standard #
 ############
-import os
 import random
 import logging
 from pathlib import Path

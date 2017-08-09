@@ -9,11 +9,6 @@ relative import dir according to how deep it is in the directory tree.
 ############
 import os
 
-###############
-# Third Party #
-###############
-import cv2
-
 ##########
 # Module #
 ##########

@@ -8,7 +8,6 @@ import logging
 ###############
 # Third Party #
 ###############
-import cv2
 import numpy as np
 from pyadplugin import ADPluginServer, ADPluginFunction
 
