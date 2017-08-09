@@ -25,8 +25,10 @@ from psbeam.images.testing import (beam_image_01, beam_image_02, beam_image_03,
 from psbeam.beamexceptions import NoBeamDetected
 from psbeam.filters import (contour_area_filter, full_filter)
 from psbeam.beamdetector import detect
+from psbeam.images.testing.dg3 import images as images_dg3
+from psbeam.images.testing.hx2 import images as images_hx2
 
-beam_images = [beam_image_01, beam_image_02, beam_image_03, beam_image_04]    
+beam_images = [beam_image_01, beam_image_02, beam_image_03, beam_image_04]
 
 # contour_area_filter
 
@@ -47,6 +49,16 @@ def test_contour_area_filter_correctly_filters_beam_images():
             assert(image_passes == False)
         else:
             assert(image_passes == True)
+
+def test_contour_area_filter_works_on_dg3_images():
+    for key, img in images_dg3.items():
+        image_passes = contour_area_filter(img, kernel=(19,19), factor=4)
+        assert(image_passes == bool(int(key[-3:])) and True)
+
+def test_contour_area_filter_works_on_hx2_images():
+    for key, img in images_hx2.items():
+        image_passes = contour_area_filter(img, kernel=(19,19), factor=2)
+        assert(image_passes == bool(int(key[-3:])) and True)             
 
 # full_filter
 
@@ -91,3 +103,25 @@ def test_full_filter_returns_true_correctly():
             assert(image_passes == False)
         else:
             assert(image_passes == True)
+
+def test_full_filter_works_on_hx2_images():
+    for key, img in images_hx2.items():
+        try:
+            cent, _ = detect(img, kernel=(9,9))
+        except NoBeamDetected:
+            cent = (0,0)
+        image_passes = full_filter(img, cent, kernel=(9,9), n_opening=3,
+                                   thresh_similarity=0.1, cent_atol=3)        
+        assert(image_passes == bool(int(key[-3:])) and True)             
+            
+def test_full_filter_works_on_dg3_images():
+    for key, img in images_dg3.items():
+        try:
+            cent, _ = detect(img, kernel=(9,9))
+        except NoBeamDetected:
+            cent = (0,0)
+        image_passes = full_filter(img, cent, kernel=(9,9), n_opening=3,
+                                   thresh_similarity=0.1, cent_atol=3)
+        assert(image_passes == bool(int(key[-3:])) and True)
+            
+

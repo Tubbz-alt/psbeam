@@ -21,7 +21,7 @@ import numpy as np
 # Module #
 ##########
 from .images import templates
-from .preprocessing import (threshold_image, to_gray)
+from .preprocessing import (threshold_image, to_gray, to_uint8)
 from .beamexceptions import (NoContoursDetected, InputError)
 
 logger = logging.getLogger(__name__)
@@ -36,9 +36,9 @@ def get_contours(image, thresh_mode="otsu", *args, **kwargs):
         Image to extract the contours from.
 
     thresh_mode : str, optional
-    	Thresholding mode to use. For extended documentation see
-    	preprocessing.threshold_image. Valid modes are:
-    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+        Thresholding mode to use. For extended documentation see
+        preprocessing.threshold_image. Valid modes are:
+            ['mean', 'top', 'bottom', 'adaptive', 'otsu']
 
     Returns
     -------
@@ -48,7 +48,7 @@ def get_contours(image, thresh_mode="otsu", *args, **kwargs):
     Raises
     ------
     NoContoursDetected
-    	The returned contours list was empty.
+        The returned contours list was empty.
     """
     image_thresh = threshold_image(image, mode=thresh_mode, **kwargs)
     _, contours, _ = cv2.findContours(image_thresh, 1, 2)    
@@ -76,9 +76,9 @@ def get_largest_contour(image=None, contours=None, thresh_mode="otsu",
         Contours found on an image.
 
     thresh_mode : str, optional
-    	Thresholding mode to use. For extended documentation see
-    	preprocessing.threshold_image. Valid modes are:
-    		['mean', 'top', 'bottom', 'adaptive', 'otsu']
+        Thresholding mode to use. For extended documentation see
+        preprocessing.threshold_image. Valid modes are:
+            ['mean', 'top', 'bottom', 'adaptive', 'otsu']
     
     Returns
     -------
@@ -88,15 +88,15 @@ def get_largest_contour(image=None, contours=None, thresh_mode="otsu",
     Raises
     ------
     InputError
-    	If neither an image nor contours are inputted, or largest area is zero
+        If neither an image nor contours are inputted, or largest area is zero
     """
     # Check if contours were inputted
     if image is None and contours is None:
         raise InputError("No image or contours provided.")
     elif image is not None:
         if contours is not None:
-            logger.warning("Image and contours inputted. Returning largest contour"
-                        " of the image.")
+            logger.warning("Image and contours inputted. Returning largest "
+                           "contour of the image.")
         contours = get_contours(image, thresh_mode=thresh_mode, **kwargs)
         
     # Get area of all the contours found
@@ -136,7 +136,7 @@ def get_moments(image=None, contour=None, **kwargs):
     Raises
     ------
     InputError
-    	If neither an image nor contours are inputted.    
+        If neither an image nor contours are inputted.    
     """
     if image is None and contour is None:
         raise InputError("No image or contour provided.")
@@ -219,7 +219,7 @@ def get_contour_size(image=None, contour=None, **kwargs):
     Raises
     ------
     InputError
-    	If neither an image nor contours are inputted.    
+        If neither an image nor contours are inputted.    
     """
     _, _, w, l = get_bounding_box(image=image, contour=contour, **kwargs)
     return l, w
@@ -234,7 +234,7 @@ def get_similarity(contour, template="circle", method=1, **kwargs):
         Contour to be compared with the template contour
 
     template : str or np.ndarray, optional
-    	String for template image to use, or can be a contour
+        String for template image to use, or can be a contour
 
     method : int, optional
         Matches the contours according to an enumeration from 0 to 2. To see
@@ -249,8 +249,8 @@ def get_similarity(contour, template="circle", method=1, **kwargs):
     Raises
     ------
     InputError
-    	If string for template image is not in template images, np.ndarray for
-    	template image is not the right shape, invalid type passed for template.
+        If string for template image is not in template images, np.ndarray for
+        template image is not the right shape, invalid type passed for template.
     """
     # If template is a string, grab it from templates directory
     if isinstance(template, str):

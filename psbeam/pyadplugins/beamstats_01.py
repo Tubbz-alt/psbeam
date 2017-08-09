@@ -8,10 +8,8 @@ import logging
 ###############
 # Third Party #
 ###############
-import cv2
 import numpy as np
 from pyadplugin import ADPluginServer, ADPluginFunction
-import simplejson as sjson
 from pathlib import Path
 
 ##########
@@ -25,16 +23,18 @@ def stats_01(array, height=None, width=None, resize=1.0, kernel=(13,13)):
     desc = "Gauss filter for prep. Use largest contour. Use sum for beam " \
       "presence."
     file_str = Path("{0}.json".format(ad_prefix.replace(":", "_")))
-    return contouring_pipeline(array, height=height, width=width, prefix="PYSTATS:",
-                               suffix=":01", desc=desc, save_image=True,
-                               save_image_path=save_image_path) 
+    return contouring_pipeline(array, height=height, width=width, resize=resize,
+                               prefix="PYSTATS:", suffix=":01", kernel=kernel,
+                               description=desc, save_image=True,
+                               json_path=file_str) 
 
 def stats_02(array, height=None, width=None, resize=1.0, kernel=(13,13)):
     desc = "Gauss filter then 2 erosions and 2 dilations for prep. Use " \
       "largest contour. No check for beam presence."
-    return contouring_pipeline(array, height=height, width=width, prefix="PYSTATS:",
-                               suffix=":02", desc=desc, save_image=True,
-                               save_image_path=save_image_path) 
+    return contouring_pipeline(array, height=height, width=width, resize=resize,
+                               prefix="PYSTATS:", suffix=":02", kernel=kernel,
+                               description=desc, save_image=True,
+                               json_path=file_str)
 
 # Set up the server
 ad_prefix = 'HX2:SB1:CVV:01:'
@@ -46,8 +46,10 @@ server = ADPluginServer(prefix='PYSTATS:',
 
 # Set the file that takes the json file
 file_str = "{0}".format(ad_prefix.replace(":", "_"))
-json_path = Path("/reg/g/pcds/pyps/apps/skywalker/json/{0}.json".format(file_str))
-image_path = Path("/reg/g/pcds/pyps/apps/skywalker/images/{0}.png".format(file_str))
+json_path = Path("/reg/g/pcds/pyps/apps/skywalker/json/{0}.json".format(
+    file_str))
+image_path = Path("/reg/g/pcds/pyps/apps/skywalker/images/{0}.png".format(
+    file_str))
 
 # Set up the plugins
 stats01 = ADPluginFunction("01", {"PYSTATS:AREA:01": 0, 
@@ -70,6 +72,4 @@ stats02 = ADPluginFunction("02", {"PYSTATS:AREA:02": 0,
                                   "PYSTATS:MATCH:02": 0,
                                   "PYSTATS:M:02":np.zeros((24))-1}, 
                            stats_02, server)
-
-# import ipdb; ipdb.set_trace()
 

@@ -19,6 +19,8 @@ from multiprocessing import Process
 # Module #
 ##########
 
+logger = logging.getLogger(__name__)
+
 def _plot(image, centroids, bounding_boxes, msg):
     """
     Internal method. Plots the inputted image optionally with the 
@@ -49,8 +51,8 @@ def _plot(image, centroids, bounding_boxes, msg):
                             facecolor='none')
             ax.add_patch(box)
     if msg:
-         plt.text(0.95, 0.05, msg, ha='right', va='center', color='w',
-                  transform=ax.transAxes)
+        plt.text(0.95, 0.05, msg, ha='right', va='center', color='w',
+                 transform=ax.transAxes)
     plt.grid()
     plt.show()
 

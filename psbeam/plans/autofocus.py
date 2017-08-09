@@ -8,14 +8,14 @@ from __future__ import print_function
 from blbase.motor import Motor
 from blbase.iterscan import IterScan, Hooks
 from blbase import virtualmotor as vmotor
-from psp import Pv as pv
-from scipy.optimize import minimize, minimize_scalar, fmin
+from psp import Pv
+from scipy.optimize import minimize, fmin
 from collections import Iterable
 from .preprocessing import to_uint8
 import cv2
 import itertools
 import numpy as np
-
+import copy
 
 # cachedir = "cache"
 # mem = Memory(cachedir=cachedir, verbose=0)
@@ -65,13 +65,13 @@ class Focus(Hooks):
         if self.method == "scan":
             assert isiterable(self.positions)
         assert isiterable(self.motor_pv) or isinstance(
-            self.motor_pv, (basestring, Motor, VirtualMotor))
-        if isinstance(self.motor_pv, (basestring, Motor)):
+            self.motor_pv, (str, Motor, VirtualMotor))
+        if isinstance(self.motor_pv, (str, Motor)):
             assert len(self.positions) == 3
         elif isiterable(self.motor_pv):
             assert len(self.positions) == len(self.motor_pv)
             for pv, pos in zip(self.motor_pv, self.positions):
-                assert isinstance(pv, basestring)
+                assert isinstance(pv, str)
                 assert isiterable(pos)
                 assert len(pos) == 3
         elif isinstance(self.motor_pv, VirtualMotor): 
@@ -85,7 +85,7 @@ class Focus(Hooks):
                     assert len(self.positions) == 3
                     assert self.motor_pv.num_motors == 1
 
-        assert isinstance(self.camera_pv, (VirtualCamera, basestring))
+        assert isinstance(self.camera_pv, (VirtualCamera, str))
         assert self.resize > 0
         assert isinstance(self.kernel, tuple)
         assert len(self.kernel) == 2
@@ -96,11 +96,10 @@ class Focus(Hooks):
         assert self.sharpness in self._sharpness_methods.keys()
         
     def _get_motor_objs(self):
-        motors = []
         if isinstance(self.motor_pv, (Motor, VirtualMotor)):
             return self.motor_pv
-        elif isinstance(self.motor_pv, basestring):
-            return Motor(self.motor_pv, name=pv.get(self.motor_pv+".DESC"))
+        elif isinstance(self.motor_pv, str):
+            return Motor(self.motor_pv, name=Pv.get(self.motor_pv+".DESC"))
         elif isiterable(self.motor_pv):
             return VirtualMotor(self.motor_pv)
         
@@ -120,7 +119,7 @@ class Focus(Hooks):
     def _get_camera_obj(self):
         if isinstance(self.camera_pv, VirtualCamera):
             return self.camera_pv
-        elif isinstance(self.camera_pv, basestring):
+        elif isinstance(self.camera_pv, str):
             return VirtualCamera(self.camera_pv)
         else:
             raise TypeError
@@ -153,7 +152,7 @@ class Focus(Hooks):
     
     def get_focus(self, image, sharpness="laplacian", const=1):
         image_prep = self.preprocess(image)
-        return const * self._sharpness_methods[sharpness](image)
+        return const * self._sharpness_methods[sharpness](image_prep)
 
     def get_ave_focus(self, sharpness="laplacian", const=1):
         focus = np.empty([self.average])
@@ -243,12 +242,12 @@ class VirtualMotor(vmotor.VirtualMotor):
         self.name = self.name[:-1]
 
     def _get_motors(self, motor_pvs):
-        motor_names = [pv.get(motor_pv + ".DESC") for motor_pv in motor_pvs]
+        motor_names = [Pv.get(motor_pv + ".DESC") for motor_pv in motor_pvs]
         return [Motor(motor, name=motor_name) for motor, motor_name in zip(
             motor_pvs, motor_names)]
 
     def mv(self, vals):
-        if len(val) == self.num_motors:
+        if len(vals) == self.num_motors:
             for motor, val in zip(self._motors, vals):
                 motor.mv(val)
         else:
@@ -267,14 +266,14 @@ class VirtualCamera(object):
     def __init__(self, camera_pv):
         self.pv = camera_pv
     def get(self):
-        return pv.get(self.pv)
+        return Pv.get(self.pv)
 
 def isiterable(obj):
     """
     Function that determines if an object is an iterable, but not including 
     strings.
     """
-    if isinstance(obj, basestring):
+    if isinstance(obj, str):
         return False
     else:
         return isinstance(obj, Iterable)
