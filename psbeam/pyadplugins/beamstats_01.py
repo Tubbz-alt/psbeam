@@ -33,7 +33,7 @@ def stats_02(array, height=None, width=None, resize=1.0, kernel=(13,13)):
       "largest contour. No check for beam presence."
     return contouring_pipeline(array, height=height, width=width, resize=resize,
                                prefix="PYSTATS:", suffix=":02", kernel=kernel,
-                               desccription=desc, save_image=True,
+                               description=desc, save_image=True,
                                json_path=file_str)
 
 # Set up the server
