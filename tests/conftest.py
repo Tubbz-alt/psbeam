@@ -12,7 +12,6 @@ import pytest
 import numpy as np
 from bluesky import RunEngine
 from bluesky.tests.utils import MsgCollector
-from pcdsdevices.sim.areadetector.detectors import SimDetector
 
 ##########
 # Module #
@@ -58,59 +57,5 @@ def set_level(pytestconfig):
 
 logger = logging.getLogger(__name__)
 logger.info("pytest start")
-run_engine_logger = logging.getLogger("RunEngine")
-
-
-@pytest.fixture(scope='function')
-def RE():
-    """
-    Standard logging runengine
-    """
-    RE = RunEngine({})
-    collector = MsgCollector(msg_hook=run_engine_logger.debug)
-    RE.msg_hook = collector
-    return RE
-
-def yield_seq_beam_image(detector, images, idx=0):
-    while True:
-        val = idx % len(images)
-        yield images[val].astype(np.uint8)
-        idx += 1        
-
-def _next_image(det, gen):
-    det.image.array_counter.value += 1
-    return next(gen)
-        
-@pytest.fixture(scope='function')
-def sim_det_01():
-    det = SimDetector("PSB:SIM:01")
-    # Spoof image
-    yield_image = yield_seq_beam_image(det, beam_images, idx=0)
-    det.image._image = lambda : _next_image(det, yield_image)
-    return det
-
-@pytest.fixture(scope='function')
-def sim_det_02():
-    det = SimDetector("PSB:SIM:02")
-    # Spoof image
-    yield_image = yield_seq_beam_image(det, beam_images, idx=0)
-    det.image._image = lambda : _next_image(det, yield_image)
-    return det
-
-@pytest.fixture(scope='function')
-def sim_hx2():
-    det = SimDetector("PSB:SIM:HX2")
-    # Spoof image
-    yield_image = yield_seq_beam_image(det, images_hx2, idx=0)
-    det.image._image = lambda : _next_image(det, yield_image)
-    return det
-
-@pytest.fixture(scope='function')
-def sim_dg3():
-    det = SimDetector("PSB:SIM:DG3")
-    # Spoof image
-    yield_image = yield_seq_beam_image(det, images_dg3, idx=0)
-    det.image._image = lambda : _next_image(det, yield_image)
-    return det
 
 
