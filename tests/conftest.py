@@ -10,8 +10,6 @@ from pathlib import Path
 ###############
 import pytest
 import numpy as np
-from bluesky import RunEngine
-from bluesky.tests.utils import MsgCollector
 
 ##########
 # Module #
