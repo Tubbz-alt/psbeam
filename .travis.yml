@@ -1,8 +1,14 @@
 language: python
-python:
-  # We don't actually use the Travis Python, but this keeps it organized.
-  - "3.5"
-  - "3.6"
+env:
+  global:
+    - OFFICIAL_REPO="slaclab/psbeam"
+
+matrix:
+  include:
+    # We don't actually use the Travis Python, but this keeps it organized.
+    - python: 3.5
+    - python: 3.6
+      env: BUILD_DOCS=1
 
 install:
   - sudo apt-get update
@@ -13,14 +19,14 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
+  - conda install conda-build anaconda-client
+  - conda update -q conda conda-build
   # Useful for debugging any issues with conda
   - conda info -a
   # Grab all dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION coverage pip wheel ophyd==0.6.1 bluesky==0.9.0 pytest opencv=3.1 -c conda-forge -c lightsource2-tag
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION coverage pip wheel pytest opencv=3.1 -c conda-forge -c lightsource2-tag
   # Launch Conda environment
   - source activate test-environment
-  # Install pedl
   - pip install codecov
   - pip install -r requirements.txt
   # Install
@@ -32,3 +38,11 @@ script:
 
 after_success:
   - codecov
+  - |
+    if [[ $TRAVIS_PULL_REQUEST == false && $TRAVIS_REPO_SLUG == $OFFICIAL_REPO && $TRAVIS_BRANCH == $TRAVIS_TAG  && $TRAVIS_TAG != '' && $CONDA_UPLOAD_TOKEN_TAG != '' ]]; then
+      conda build . -c defaults -c conda-forge --token $CONDA_UPLOAD_TOKEN_TAG --python $TRAVIS_PYTHON_VERSION
+    fi
+  - |
+    if [[ $TRAVIS_PULL_REQUEST == false && $TRAVIS_REPO_SLUG == $OFFICIAL_REPO && $TRAVIS_BRANCH == 'master' && $TRAVIS_TAG == '' && $CONDA_UPLOAD_TOKEN_DEV != '' ]]; then
+      conda build . -c defaults -c conda-forge --token $CONDA_UPLOAD_TOKEN_DEV --python $TRAVIS_PYTHON_VERSION
+    fi

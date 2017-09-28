@@ -1,0 +1,30 @@
+{% set data = load_setup_py_data() %}
+
+package:
+    name    : psbeam
+    version : {{ data.get('version') }}
+
+source:
+    path: ..
+
+requirements:
+    build:
+       - python {{PY_VER}}*,>=3
+       - setuptools
+
+    run:
+      - python {{PY_VER}}*,>=3
+      - numpy
+      - simplejson
+      - pandas
+      - opencv >=3.1
+      - matplotlib
+
+test:
+    imports:
+      - psbeam
+
+about:
+  home: https://github.com/slaclab/psbeam
+  license: SLAC Open Licence
+  summary: Image Processing Pipelines for Photon Controls and Data Systems
