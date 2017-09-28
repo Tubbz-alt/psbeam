@@ -26,5 +26,5 @@ test:
 
 about:
   home: https://github.com/slaclab/psbeam
-  licence: SLAC Open Licence
+  license: SLAC Open Licence
   summary: Image Processing Pipelines for Photon Controls and Data Systems
