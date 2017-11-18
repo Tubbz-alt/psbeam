@@ -37,7 +37,7 @@ def get_contours(image, thresh_mode="otsu", *args, **kwargs):
 
     thresh_mode : str, optional
         Thresholding mode to use. For extended documentation see
-        preprocessing.threshold_image. Valid modes are:
+        ``preprocessing.threshold_image``. Valid modes are:
             ['mean', 'top', 'bottom', 'adaptive', 'otsu']
 
     Returns
@@ -77,7 +77,7 @@ def get_largest_contour(image=None, contours=None, thresh_mode="otsu",
 
     thresh_mode : str, optional
         Thresholding mode to use. For extended documentation see
-        preprocessing.threshold_image. Valid modes are:
+        ``preprocessing.threshold_image``. Valid modes are:
             ['mean', 'top', 'bottom', 'adaptive', 'otsu']
     
     Returns
