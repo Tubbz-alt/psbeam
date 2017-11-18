@@ -84,10 +84,9 @@ def to_uint8(image, mode="scale"):
     
     Running 'image.astype(np.uint8)' on its own applies a mod(256) to handle
     values over 256. The correct way is to either clip (implemented here) or
-    normalize to the the max and min possible values of the array.
+    normalize to the the max and min possible values of the array. Below are the
+    available conversion modes:
 
-    Conversion Modes
-    ----------------
     clip
         Truncates the  image at 0 and 255, then returns the resulting array.
 
@@ -197,10 +196,10 @@ def uint_resize_gauss(image, mode='scale', fx=1.0, fy=1.0, kernel=(11,11),
 
 def threshold_image(image, binary=True, mode="top", factor=1, **kwargs):
     """
-    Thresholds the image according to one of the modes described below.
+    Thresholds the image, creating a binary image.
 
-    Threshold Modes
-    ---------------
+    The thresholding can be done using one of the following modes:
+
     mean
         Set the threshold line to be image.mean + image.std*factor.
 

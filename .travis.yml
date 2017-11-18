@@ -1,8 +1,10 @@
 language: python
+sudo: false
 env:
   global:
     - OFFICIAL_REPO="slaclab/psbeam"
-
+    - secure: "JccNScxOMd3PBfmMYM9dT31b41RuebPxGGyg0aNfAKsbUe9MLrgt//EVGk1XEQR/DnCs1gBNDC+D2tWoVlJq5CNxNdWG5XmBignQ84RfxSaGOZUKCWwgADepyqFjdxHpGjWm/fwUWoUlL3iP1pEizvAIYwcdRt1JhKjP07AWUUhXudcdGLxgYnN5TbGPtlJVrlRFI6WLalN9LTzFIiM3PRO7pvrFAXkVT/gLzVNVx1i4Ge60unfuGcRRy/w9s507j4nQdNV/HNqbs7uXxPkvGa1fTeiuly4mAnceeu5MrxqTumP6Rds0O+bF8iM4CxciVQU8+BccGxbPBVzxw+kUOR0zet3Es+BE/a9u5werLlwfogOQasQSNjOok+qMEjXTgVtwjKViCYkO26L48okCBuOaqdYJlgCrXsiQ3R91pATzE4iIyF9pyTTNqWq0z2uOzXZLwnBWQLNcIqNJvszZmajpnT9XeJgqCASXDhGpAy9RXMhP8P48kKA/bNbWNdTLgGVJ7BxByb50tUEk2XijA7rCcHj6wCocT2qN2Ibu8QzzvVPWxRdEvx9utbL/40V/BP9pN0Wwr4QzLhqCG+uX00pBkmg8Y5nbM5S0olynzt9jFCFZDNPLZJYMq06e5TDHQs3dCr6ehI1O2QgP3XvzDAo6m8nX9slt1AS9MF6sw/E="
+      
 matrix:
   include:
     # We don't actually use the Travis Python, but this keeps it organized.
@@ -35,6 +37,16 @@ install:
 script:
   - coverage run run_tests.py
   - coverage report -m
+  #Build docs
+  - |
+    if [[ -n "$DOCTR_DEPLOY_ENCRYPTION_KEY" && $BUILD_DOCS ]]; then
+      pip install -r docs-requirements.txt
+      pushd docs
+      make html
+      popd
+      #Publish docs.
+      doctr deploy --deploy-repo lcls-pcds/skywalker-docs --deploy-branch-name master psbeam
+    fi
 
 after_success:
   - codecov
