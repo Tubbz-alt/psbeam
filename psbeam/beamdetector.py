@@ -28,7 +28,7 @@ def detect(image, resize=1.0, kernel=(9,9), thresh_mode="otsu",
            uint_mode="scale", thresh_factor=1, filters=None, **kwargs):
     """
     Checks for beam presence and returns the centroid and bounding box 
-    of the beam. Raises a NoBeamDetected exception if no beam is found.
+    of the beam. Raises a ``NoBeamDetected`` exception if no beam is found.
 
     Parameters
     ----------

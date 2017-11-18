@@ -85,10 +85,11 @@ def full_filter(image, centroids_ad, resize=1.0, kernel=(13,13), n_opening=1,
                 thresh_similarity=0.067, thresh_mode="otsu"):
     """
     Runs the full pipeline which includes:
-        - Checks if there is beam by obtaining an image contour
-        - Checks the sum of all pixels is above and below a threshold
-        - Checking if the computed centroid is close to the adplugin centroid
-        - Checks that the beam is above the threshold of similarity
+
+     - Checks if there is beam by obtaining an image contour
+     - Checks the sum of all pixels is above and below a threshold
+     - Checking if the computed centroid is close to the adplugin centroid
+     - Checks that the beam is above the threshold of similarity
 
     Parameters
     ----------
