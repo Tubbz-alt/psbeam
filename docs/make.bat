@@ -5,7 +5,7 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
         set SPHINXBUILD=sphinx-build
 )
-set BUILDDIR=_build
+set BUILDDIR=build
 set SOURCEDIR=source
 set ALLSPHINXOPTS=-d %BUILDDIR%/doctrees %SPHINXOPTS% %SOURCEDIR% 
 set I18NSPHINXOPTS=%SPHINXOPTS% %SOURCEDIR% 
